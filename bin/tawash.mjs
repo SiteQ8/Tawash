@@ -14,7 +14,7 @@ import { join } from "node:path";
 import { createHash } from "node:crypto";
 import {
   parse, clean, permute, ALGORITHMS, unknownAlgorithms, watchlist, matchAll, assess, rank,
-  scan, rescore, pool, hostList, dohResolver, rdapClient, serialise, toMarkdown, FORMATS,
+  scan, rescore, pool, hostList, dohResolver, rdapClient, serialise, toMarkdown, FORMATS, loadTlds,
   t, plural, plainText, HELP, VERSION
 } from "../src/engine/index.js";
 import { systemResolver } from "../src/node/resolve.js";
@@ -31,7 +31,7 @@ const OPTIONS = {
   asli: "bool", keywords: "string", keyword: "list", format: "string", out: "string", lang: "string",
   algorithms: "string", all: "bool", doh: "string", resolver: "string", concurrency: "string",
   "known-ns": "string", "known-mx": "string", exclude: "string", web: "bool", certs: "bool",
-  claim: "list", "no-age": "bool", sweep: "bool", date: "string", feed: "string",
+  claim: "list", "no-age": "bool", sweep: "bool", "all-tlds": "bool", date: "string", feed: "string",
   confidence: "string", dns: "bool", ct: "bool", days: "string", "alert-at": "string",
   "fail-on": "string", version: "bool", help: "bool"
 };
@@ -99,6 +99,17 @@ function algorithmsFrom(opts, lang) {
   const bad = unknownAlgorithms(wanted);
   if (bad.length) throw new UsageError(t("cli.badAlgorithm", lang, { list: bad.join(", ") }));
   return wanted;
+}
+
+/* Every ending IANA lists, when asked for. On failure the usual set is searched and the person is told. */
+async function tldsFor(opts, lang) {
+  if (!opts["all-tlds"]) return null;
+  try {
+    return (await loadTlds()).tlds;
+  } catch {
+    info(t("ui.tldsFailed", lang));
+    return null;
+  }
 }
 
 function progress(lang) {
@@ -240,7 +251,7 @@ const COMMANDS = {
   async candidates(args, opts, lang) {
     const p = parse(args[0] || "");
     if (!p) throw new UsageError(t("cli.badDomain", lang, { input: args[0] || "" }));
-    const list = permute(p, { algorithms: algorithmsFrom(opts, lang) });
+    const list = permute(p, { algorithms: algorithmsFrom(opts, lang), tlds: await tldsFor(opts, lang) });
     const format = opts.format || "table";
     let text;
     if (format === "json") text = JSON.stringify(list, null, 2) + "\n";
@@ -263,6 +274,7 @@ const COMMANDS = {
     const result = await scan(p.host, {
       resolver: makeResolver(opts),
       algorithms: algorithmsFrom(opts, lang),
+      tlds: await tldsFor(opts, lang),
       known: listed(opts),
       exclude: opts.exclude ? hostList(readFileSync(opts.exclude, "utf8")) : [],
       concurrency: concurrency(opts),
@@ -368,10 +380,11 @@ const COMMANDS = {
     if (opts.sweep) {
       const resolver = makeResolver(opts);
       const rdap = opts["no-age"] ? null : rdapClient();
+      const tlds = await tldsFor(opts, lang);
       let count = 0;
       for (const official of list.official) {
         const r = await scan(official, {
-          resolver, concurrency: concurrency(opts), known: listed(opts), rdap,
+          resolver, concurrency: concurrency(opts), known: listed(opts), rdap, tlds,
           rdapFilter: (x) => x.score >= 25
         });
         r.results.filter(exists).forEach((x) => keep({ ...x, original: r.target }));

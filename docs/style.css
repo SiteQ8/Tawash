@@ -155,7 +155,8 @@ html[lang="en"] .intro h1 { font-family: var(--arabic); font-weight: 600; letter
 .technique-tools { display: flex; gap: 0.5rem; margin: 0.4rem 0 0.6rem; }
 .technique-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr)); gap: 0.2rem 1rem; }
 .technique-list label { display: flex; gap: 0.5rem; align-items: baseline; font-size: 0.95rem; cursor: pointer; }
-.technique-list input { accent-color: var(--brass); }
+.technique-list input, .every-tld input { accent-color: var(--brass); }
+.every-tld { display: flex; gap: 0.5rem; align-items: baseline; margin-top: 0.8rem; font-size: 0.95rem; cursor: pointer; }
 
 .known { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 0.6rem 1rem; }
 .known label, .exclude { display: grid; gap: 0.3rem; font-size: 0.92rem; color: var(--mist); }

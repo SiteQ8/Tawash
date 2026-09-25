@@ -14,4 +14,5 @@ export * from "./strings.js";
 export * from "./export.js";
 export * from "./doh.js";
 export * from "./rdap.js";
+export * from "./tlds.js";
 export * from "./scan.js";

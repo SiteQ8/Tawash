@@ -6,11 +6,12 @@
 */
 import {
   ALGORITHMS, VERSION, t, reasonText, parse, diffMarks, toUnicode, scan, rank,
-  dohResolver, rdapClient, serialise, hostList, POINTS
+  dohResolver, rdapClient, serialise, hostList, POINTS, loadTlds
 } from "./js/engine/index.js";
 
 const $ = (s) => document.querySelector(s);
 const MAX_ROWS = 600;
+let everyTld = null;
 
 const state = {
   lang: "ar",
@@ -153,8 +154,21 @@ async function run(input) {
   note(ui("learning", { domain: p.registrable }));
   render(true);
 
+  /* Every ending IANA lists, read once per visit and only when asked for. */
+  let tlds = null;
+  if ($("#all-tlds").checked) {
+    try {
+      everyTld = everyTld || loadTlds().then((x) => x.tlds);
+      tlds = await everyTld;
+    } catch {
+      everyTld = null;
+      note(ui("tldsFailed"));
+    }
+  }
+
   try {
     const report = await scan(p.host, {
+      tlds,
       resolver: dohResolver({ signal: controller.signal }),
       rdap: rdapClient(),
       algorithms: techniques,
@@ -165,7 +179,8 @@ async function run(input) {
       onOriginal: (o) => {
         if (state.controller !== controller) return;
         state.original = o;
-        note(o.exists === false ? ui("originalMissing", { domain: o.domain }) : "");
+        if (o.exists === false) note(ui("originalMissing", { domain: o.domain }));
+        else if (!$("#all-tlds").checked || tlds) note("");
       },
       onCandidates: (list) => {
         if (state.controller === controller) state.total = list.length;

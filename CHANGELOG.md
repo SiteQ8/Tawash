@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0 (2026-09-25)
+
+- The search for other endings can now cover every top level domain IANA lists, about 1,400, with `--all-tlds` on the command line or the matching option on the page. The list is read live from IANA each time.
+- A disclaimer on the page and in both READMEs: Tawash is a tool for demonstration and testing, provided as is, without warranty and without liability.
+- The repository runs nothing on its own. CI only runs when started by hand, and the GitHub Actions example for the daily watch is replaced by a cron example for a machine you control.
+
 ## 1.0.1 (2026-09-25)
 
 - Tawash is described as what it is, a threat intelligence tool that searches for lookalike domains, on the page, in the help and in both READMEs.

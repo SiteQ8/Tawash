@@ -7,7 +7,7 @@ import { parse, clean } from "./domain.js";
 import { permute } from "./permute.js";
 import { assess, rank } from "./score.js";
 
-export const VERSION = "1.0.1";
+export const VERSION = "1.1.0";
 
 /* Runs worker over items with at most size running at once. */
 export async function pool(items, size, worker, signal) {
@@ -33,6 +33,7 @@ export function hostList(text) {
   scan("example.com", {
     resolver,            anything with lookup(name)
     algorithms,          technique ids, all by default
+    tlds,                every ending to search, from loadTlds, instead of the usual set
     known: { ns, mx },   servers the person says are theirs
     exclude,             host names to leave out
     concurrency,         parallel lookups
@@ -64,7 +65,7 @@ export async function scan(input, options = {}) {
   };
   if (options.onOriginal) options.onOriginal(original);
 
-  const candidates = permute(p, { algorithms: options.algorithms, limit: options.limit }).filter(
+  const candidates = permute(p, { algorithms: options.algorithms, limit: options.limit, tlds: options.tlds }).filter(
     (c) => !excluded.has(c.domain) && !excluded.has(c.unicode)
   );
   if (options.onCandidates) options.onCandidates(candidates);

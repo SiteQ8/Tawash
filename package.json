@@ -1,6 +1,6 @@
 {
   "name": "tawash",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "A threat intelligence tool that finds the lookalike domains made to pass for Kuwait's real ones, from typos and lookalike characters to Latin spellings of Arabic names, newly registered domains and certificate logs.",
   "type": "module",
   "bin": {

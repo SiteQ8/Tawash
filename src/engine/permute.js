@@ -284,8 +284,9 @@ G["wrong-sld"] = ({ u, suffix }) => {
   return [...others, tld].map((x) => u + "." + x);
 };
 
-G["wrong-tld"] = ({ u, suffix }) =>
-  [...COMMON_TLDS, ...GCC_SUFFIXES].filter((t) => t !== suffix).map((t) => u + "." + t);
+/* The common and Gulf endings come first, then, when given, every other ending IANA lists. */
+G["wrong-tld"] = ({ u, suffix, tlds }) =>
+  [...new Set([...COMMON_TLDS, ...GCC_SUFFIXES, ...(tlds || [])])].filter((t) => t !== suffix).map((t) => u + "." + t);
 
 G["add-tld"] = ({ u, suffix }) => {
   const last = suffix.split(".").pop();
@@ -311,13 +312,15 @@ G.bitsquatting = ({ u, suffix }) => {
 /*
   permute("example.com") returns [{ domain, unicode, algorithm, idn }], without the
   original and without anything DNS would refuse. domain is always ASCII.
+  options.tlds, a list such as the one loadTlds reads from IANA, widens the
+  search for other endings to every one of them.
 */
 export function permute(input, options = {}) {
   const wanted = options.algorithms && options.algorithms.length ? options.algorithms : ALGORITHMS;
   const limit = options.limit || 5000;
   const p = typeof input === "string" ? parse(input) : input;
   if (!p) throw new TypeError("not a domain name: " + input);
-  const ctx = { ...p, u: toUnicode(p.name) };
+  const ctx = { ...p, u: toUnicode(p.name), tlds: options.tlds || null };
   const seen = new Map();
   for (const id of ALGORITHMS) {
     if (!wanted.includes(id)) continue;

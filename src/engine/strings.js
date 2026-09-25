@@ -10,7 +10,7 @@
 /* Proper nouns that may appear in Arabic text as they are. */
 export const LATIN_NAMES = [
   "DNS", "Google", "Public", "Cloudflare", "MIT", "GitHub", "MISP", "STIX", "CSV",
-  "JSON", "TLS", "HTTPS", "RDAP", "KNET", "WhoisDS", "CIRCL", "openSquat", "Node.js"
+  "JSON", "TLS", "HTTPS", "RDAP", "IANA", "KNET", "WhoisDS", "CIRCL", "openSquat", "Node.js"
 ];
 
 export const STRINGS = {
@@ -244,6 +244,14 @@ export const STRINGS = {
       en: "Lookalikes that use these are marked as yours. Tawash already learns them from the domain you enter.",
       ar: "تُعلَّم النطاقات الشبيهة التي تستخدمها على أنها تابعة لك، علماً أن طوّاش يستخلصها من النطاق الذي تكتبه."
     },
+    allTlds: {
+      en: "Search every top level ending listed by IANA, about 1,400 of them, which takes longer",
+      ar: "ابحث في كل نطاقات المستوى الأعلى المدرجة لدى IANA وعددها نحو 1400، وهذا يستغرق وقتاً أطول"
+    },
+    tldsFailed: {
+      en: "The IANA list could not be loaded, so the usual endings were searched.",
+      ar: "تعذّر تحميل قائمة IANA، لذا بُحث في النهايات المعتادة."
+    },
     exclude: { en: "Leave these out", ar: "استبعد هذه النطاقات" },
     excludeHint: { en: "One domain per line.", ar: "نطاق واحد في كل سطر." },
     invalid: { en: "That is not a domain name. Try something like example.com.", ar: "هذا ليس اسم نطاق، لذا جرّب مثلاً `example.com`." },
@@ -307,6 +315,11 @@ export const STRINGS = {
     cli: {
       en: "The same engine runs as a command line tool. It also watches newly registered domains and certificate logs, which a browser cannot reach.",
       ar: "يعمل المحرك نفسه أداةً في سطر الأوامر، كما يراقب النطاقات المسجلة حديثاً وسجلات شفافية الشهادات التي لا يصل إليها المتصفح."
+    },
+    disclaimerTitle: { en: "Disclaimer", ar: "إخلاء المسؤولية" },
+    disclaimer: {
+      en: "Tawash is an open source tool for demonstration and testing that shows how lookalike domains can be found. Its results come from public DNS and registry data at the moment of the search, may be incomplete or out of date, and are not a judgement about any domain or its owner. It is provided as is, without any warranty, and its authors accept no liability for its use or for any decision based on it.",
+      ar: "طوّاش أداة مفتوحة المصدر للعرض والتجربة تُبيّن كيف تُكشف النطاقات الشبيهة، وتأتي نتائجها من بيانات نظام أسماء النطاقات وسجلات التسجيل العامة لحظة البحث، لذا قد تكون ناقصة أو قديمة ولا تُعد حكماً على أي نطاق أو على مالكه، كما تُقدَّم الأداة كما هي دون أي ضمان ولا يتحمل مطوروها أي مسؤولية عن استخدامها أو عن القرارات المبنية عليها."
     },
     licence: { en: "Open source under the MIT licence.", ar: "مفتوح المصدر بترخيص MIT." },
     source: { en: "Source on GitHub", ar: "الشيفرة على GitHub" },
@@ -432,6 +445,7 @@ export const HELP = {
         ["--known-ns <list>", { en: "name servers that are yours", ar: "خوادم الأسماء التابعة لك" }],
         ["--known-mx <list>", { en: "mail servers that are yours", ar: "خوادم البريد التابعة لك" }],
         ["--exclude <file>", { en: "domains to leave out, one per line", ar: "نطاقات تُستبعد بواقع نطاق في كل سطر" }],
+        ["--all-tlds", { en: "search every top level ending IANA lists, about 1,400, which takes longer", ar: "يبحث في كل نطاقات المستوى الأعلى المدرجة لدى IANA وعددها نحو 1400، وهذا يستغرق وقتاً أطول" }],
         ["--web", { en: "fetch live lookalikes and compare their pages with the original", ar: "يجلب صفحات النطاقات النشطة ويقارنها بصفحة الأصل" }],
         ["--certs", { en: "look up recent certificates of live lookalikes", ar: "يبحث عن الشهادات الحديثة للنطاقات النشطة" }],
         ["--claim <text>", { en: "a name the organisation goes by, looked for on lookalike pages, repeatable", ar: "اسم تُعرف به الجهة يُبحث عنه في صفحات النطاقات الشبيهة ويمكن تكراره" }],

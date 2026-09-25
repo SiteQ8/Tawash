@@ -1,9 +1,9 @@
+# Runs only when started by hand from the Actions tab, so the repository never
+# spends GitHub minutes on its own. The same checks run locally before every push.
 name: CI
 
 on:
-  push:
-    branches: [main]
-  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -11,14 +11,11 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node: [20, 22]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 22
       - name: The page runs the same engine as the command line
         run: node scripts/sync-web.mjs --check
       - name: Tests

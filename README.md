@@ -26,7 +26,7 @@ The first searches for the registered lookalikes of one domain, the way CIRCL's 
 
 The second watches what is being registered, the way openSquat does. Every day WhoisDS publishes around seventy thousand newly registered domains, and every public TLS certificate lands in certificate transparency logs. Tawash matches both against a watchlist, which can be every official body in the [Asli registry](https://asli.3li.info/) with a single flag.
 
-The same engine runs in the browser and on the command line. The web finder needs no server: your browser asks DNS itself.
+The same engine runs in the browser and on the command line. The web finder needs no server: your browser asks DNS itself. By default the search tries a fixed set of common and Gulf endings, and with `--all-tlds`, or the matching option on the page, it tries every ending IANA lists today, about 1,400, which takes longer.
 
 ## Commands
 
@@ -107,6 +107,7 @@ Official domains are never reported, and their names become keywords too. Names 
 | `--known-ns <list>` | name servers that are yours |
 | `--known-mx <list>` | mail servers that are yours |
 | `--exclude <file>` | domains to leave out, one per line |
+| `--all-tlds` | search every top level ending IANA lists, about 1,400, which takes longer |
 | `--web` | fetch live lookalikes and compare their pages with the original |
 | `--certs` | look up recent certificates of live lookalikes |
 | `--claim <text>` | a name the organisation goes by, looked for on lookalike pages, repeatable |
@@ -149,7 +150,7 @@ Exit codes: 0 done, 1 error, 2 wrong usage, 3 a score reached `--fail-on`, 4 the
 | `missing-dot` | a dot left out | `example.com` to `wwwexample.com` |
 | `dot-to-dash` | a dot turned into a hyphen | `example.gov.kw` to `example-gov-kw.com` |
 | `wrong-sld` | another second level ending | `example.gov.kw` to `example.com.kw` |
-| `wrong-tld` | another top level ending, Gulf ones included | `example.com` to `example.com.kw` or `example.xyz` |
+| `wrong-tld` | another top level ending, Gulf ones included, and every ending IANA lists with `--all-tlds` | `example.com` to `example.com.kw` or `example.xyz` |
 | `add-tld` | a country code added after the whole domain | `example.com` to `example.com.ae` |
 | `dynamic-dns` | the name under free dynamic DNS services | `example.com` to `example.duckdns.org` |
 | `bitsquatting` | one bit flipped, the error a faulty memory chip makes | `example.com` to `exampde.com` |
@@ -202,9 +203,16 @@ A lookalike is marked as yours only on evidence that is hard to fake: its name s
 | `stix` | a STIX 2.1 bundle of domain and address observables with deterministic identifiers, never indicators |
 | `md` | a Markdown report for an issue or an email |
 
-## A daily watch in a private repository
+## Running the watch every day
 
-[examples/watch-workflow.yml](examples/watch-workflow.yml) runs `watch` every morning on GitHub Actions and opens an issue when `alert.md` appears. Put it in a **private** repository. A name that borrows a brand is not yet a scam, and publishing an unreviewed accusation is unfair to whoever owns it, so candidates belong in a place where a person reviews them first. Pin the version tag, as the example does, so the job runs code you have read.
+`watch` is meant for a scheduled job on a machine you control, the way openSquat is run from cron:
+
+```sh
+# every morning at 06:30, after the newly registered list is published
+30 6 * * * cd /srv/tawash && npx --yes github:SiteQ8/Tawash#v1.1.0 watch --keywords watchlist.txt --ct --out reports
+```
+
+Keep the reports private. A name that borrows a brand is not yet a scam, and publishing an unreviewed accusation is unfair to whoever owns it, so candidates belong in a place where a person reviews them first. Pin the version tag, as above, so the job runs code you have read.
 
 ## Privacy and responsible use
 
@@ -223,10 +231,16 @@ Data comes from [WhoisDS](https://www.whoisds.com/newly-registered-domains) (new
 ```sh
 node --test                        # every test, no network needed
 node scripts/sync-web.mjs          # copy src/engine into docs/js/engine after changing the engine
-node scripts/sync-web.mjs --check  # what CI runs
+node scripts/sync-web.mjs --check  # the same check CI runs
 ```
 
+The repository runs no scheduled or automatic jobs, so it costs nothing to host: the site is static and every search runs in the visitor's browser, and CI only runs when someone starts it by hand from the Actions tab.
+
 `src/engine` runs unchanged in Node and in the browser, and `docs/js/engine` is a byte for byte copy that the tests hold in step. `src/node` holds what only Node can do: the system resolver, zip files, the daily list, certificate logs and page checks. Every string lives in `src/engine/strings.js` in English and Arabic, and the tests fail when one language lacks a string, when placeholders differ, or when the Arabic breaks its punctuation rules.
+
+## Disclaimer
+
+Tawash is an open source tool for demonstration and testing that shows how lookalike domains can be found. Its results come from public DNS and registry data at the moment of the search, may be incomplete or out of date, and are not a judgement about any domain or its owner. It is provided as is, without any warranty, and its authors accept no liability for its use or for any decision based on it, as the [MIT licence](LICENSE) states.
 
 ## Licence
 

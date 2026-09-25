@@ -5,7 +5,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { domainToASCII } from "node:url";
 import {
-  encode, decode, toASCII, toUnicode, parse, clean, isValidHost, permute, ALGORITHMS, transliterate,
+  encode, decode, toASCII, toUnicode, parse, clean, isValidHost, permute, ALGORITHMS, transliterate, parseTlds,
   distance, jaroWinkler, skeleton, plain, diffMarks, titleSimilarity, KEYBOARDS, keyNeighbours
 } from "../src/engine/index.js";
 
@@ -115,6 +115,18 @@ test("the Kuwait specific techniques cover the scam patterns seen here", () => {
   assert.ok(transliterate("alsouq").includes("souq"));
   assert.ok(transliterate("alsouq").includes("elsouq"));
   assert.ok(all("choice.example").includes("\u0441\u04bb\u043e\u0456\u0441\u0435.example"), "whole script Cyrillic twin");
+});
+
+test("the IANA list is read cleanly and widens the search for other endings", () => {
+  const list = parseTlds("# Version 2026092500, Last Updated Fri Sep 25 2026 UTC\nAAA\nARPA\nXN--MGBAAKC7DVF\n\nCOM\nnot valid!\n");
+  assert.deepEqual(list, ["aaa", "xn--mgbaakc7dvf", "com"]);
+  const usual = permute("example.com", { algorithms: ["wrong-tld"] }).map((c) => c.domain);
+  const every = permute("example.com", { algorithms: ["wrong-tld"], tlds: list }).map((c) => c.domain);
+  assert.ok(!usual.includes("example.aaa"));
+  assert.ok(every.includes("example.aaa"));
+  assert.ok(every.includes("example.xn--mgbaakc7dvf"));
+  assert.ok(every.includes("example.com.kw"), "the Gulf endings stay");
+  assert.ok(!every.includes("example.com"), "never the original");
 });
 
 test("technique filters and limits are honoured", () => {
