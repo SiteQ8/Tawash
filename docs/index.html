@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>طوّاش، كاشف النطاقات الشبيهة في الكويت</title>
+  <meta name="description" content="Tawash finds the lookalike domains made to pass for Kuwait's real ones: typos, lookalike characters and Latin spellings of Arabic names, checked live in DNS.">
+  <meta name="theme-color" content="#0B2A33">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="طوّاش Tawash">
+  <meta property="og:description" content="يكشف طوّاش النطاقات التي صُنعت لتبدو كأنها نطاقات الكويت الأصلية. Finds the domains made to pass for Kuwait's real ones.">
+  <meta property="og:image" content="https://tawash.3li.info/og.png">
+  <meta property="og:url" content="https://tawash.3li.info/">
+  <link rel="canonical" href="https://tawash.3li.info/">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Readex+Pro:wght@300;400;500;600&family=Reem+Kufi:wght@500;700&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-row">
+      <p class="mark"><span class="pearl" aria-hidden="true"></span><span data-t="brand"></span></p>
+      <button type="button" class="lang" id="lang" lang="en">English</button>
+    </div>
+  </header>
+
+  <main id="finder" class="wrap">
+    <section class="intro">
+      <h1 data-t="tagline"></h1>
+      <p class="lede" data-t="lede"></p>
+    </section>
+
+    <form id="form" class="probe" novalidate autocomplete="off">
+      <label for="domain" class="field-label" data-t="label"></label>
+      <div class="probe-row">
+        <input id="domain" name="d" type="text" inputmode="url" spellcheck="false" dir="ltr"
+               placeholder="example.com" autocapitalize="off" autocorrect="off" required>
+        <button type="submit" id="go" class="go" data-t="scan"></button>
+      </div>
+      <p id="error" class="error" role="alert" hidden></p>
+
+      <details class="options">
+        <summary data-t="options"></summary>
+        <fieldset class="techniques">
+          <legend data-t="techniques"></legend>
+          <div class="technique-tools">
+            <button type="button" id="all-on" class="small" data-t="all"></button>
+            <button type="button" id="all-off" class="small" data-t="none"></button>
+          </div>
+          <div id="technique-list" class="technique-list"></div>
+        </fieldset>
+        <div class="known">
+          <label><span data-t="knownNs"></span><input id="known-ns" type="text" dir="ltr" spellcheck="false"></label>
+          <label><span data-t="knownMx"></span><input id="known-mx" type="text" dir="ltr" spellcheck="false"></label>
+          <p class="hint" data-t="knownHint"></p>
+        </div>
+        <label class="exclude"><span data-t="exclude"></span>
+          <textarea id="exclude" rows="3" dir="ltr" spellcheck="false"></textarea>
+          <span class="hint" data-t="excludeHint"></span>
+        </label>
+      </details>
+    </form>
+
+    <section id="run" class="run" hidden aria-labelledby="results-title">
+      <h2 id="results-title" class="visually-hidden" data-t="results"></h2>
+      <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-t-aria="progress">
+        <span id="meter-fill"></span>
+      </div>
+      <dl class="counts" aria-live="polite">
+        <div><dt data-t="checked"></dt><dd id="n-checked">0</dd></div>
+        <div><dt data-t="exist"></dt><dd id="n-exist">0</dd></div>
+        <div class="c-live"><dt data-t="live"></dt><dd id="n-live">0</dd></div>
+        <div class="c-yours"><dt data-t="yours"></dt><dd id="n-yours">0</dd></div>
+      </dl>
+      <p id="original" class="original"></p>
+      <p id="note" class="note" hidden></p>
+
+      <div class="bar">
+        <div class="filters" role="tablist">
+          <button type="button" role="tab" data-filter="found" aria-selected="true" data-t="filterFound"></button>
+          <button type="button" role="tab" data-filter="live" aria-selected="false" data-t="filterLive"></button>
+          <button type="button" role="tab" data-filter="known" aria-selected="false" data-t="filterKnown"></button>
+          <button type="button" role="tab" data-filter="all" aria-selected="false" data-t="filterAll"></button>
+        </div>
+        <div class="exports">
+          <span class="exports-label" data-t="download"></span>
+          <button type="button" class="small" data-export="csv">CSV</button>
+          <button type="button" class="small" data-export="json">JSON</button>
+          <button type="button" class="small" data-export="misp">MISP</button>
+          <button type="button" class="small" data-export="stix">STIX</button>
+          <button type="button" class="small" id="copy" data-t="copyLink"></button>
+        </div>
+      </div>
+
+      <ol id="results" class="results"></ol>
+      <p id="empty" class="empty" hidden></p>
+    </section>
+
+    <section id="idle" class="idle">
+      <p data-t="idle"></p>
+    </section>
+
+    <section class="legend" aria-labelledby="legend-title">
+      <h2 id="legend-title" data-t="statusesTitle"></h2>
+      <dl id="statuses" class="statuses"></dl>
+      <p class="score-note" data-t="scoreAbout"></p>
+    </section>
+
+    <section class="story" aria-labelledby="story-title">
+      <h2 id="story-title" data-t="aboutTitle"></h2>
+      <p data-t="about"></p>
+    </section>
+
+    <section class="cli" aria-labelledby="cli-title">
+      <h2 id="cli-title" data-t="cliTitle"></h2>
+      <p data-t="cli"></p>
+      <pre dir="ltr"><code>npx github:SiteQ8/Tawash scan example.com
+npx github:SiteQ8/Tawash nrd --keywords watchlist.txt --dns
+npx github:SiteQ8/Tawash watch --keywords watchlist.txt --ct --out reports</code></pre>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap">
+      <p class="privacy"><strong data-t="privacyTitle"></strong> <span data-t="privacy"></span></p>
+      <p class="links">
+        <span data-t="licence"></span>
+        <a href="https://github.com/SiteQ8/Tawash" data-t="source"></a>
+      </p>
+    </div>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

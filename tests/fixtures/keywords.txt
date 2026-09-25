@@ -1,0 +1,5 @@
+# brand tokens and official domains, one per line
+exb
+alsouq.com
+dunesairways.com
+examplebank.com

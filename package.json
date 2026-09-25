@@ -1,0 +1,44 @@
+{
+  "name": "tawash",
+  "version": "1.0.0",
+  "description": "Finds lookalike domains that pass for Kuwait's real ones: typos, lookalike characters, Latin spellings of Arabic names, newly registered domains and certificate logs.",
+  "type": "module",
+  "bin": {
+    "tawash": "bin/tawash.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "README.ar.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "sync": "node scripts/sync-web.mjs",
+    "check": "node scripts/sync-web.mjs --check && node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "typosquatting",
+    "phishing",
+    "lookalike-domains",
+    "homoglyph",
+    "brand-protection",
+    "osint",
+    "kuwait",
+    "arabic"
+  ],
+  "author": "Ali AlEnezi (https://github.com/SiteQ8)",
+  "license": "MIT",
+  "homepage": "https://tawash.3li.info/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SiteQ8/Tawash.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SiteQ8/Tawash/issues"
+  }
+}

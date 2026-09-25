@@ -1,0 +1,5 @@
+# One brand token or official domain per line.
+# A domain is never reported, and its name becomes a keyword too.
+example.com
+example.gov.kw
+examplebank

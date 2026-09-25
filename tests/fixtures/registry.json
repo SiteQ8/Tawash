@@ -1,0 +1,19 @@
+{
+  "schema": "asli.registry.v1",
+  "bodies": [
+    {
+      "id": "example-bank",
+      "name": { "ar": "بنك المثال", "en": "Example Bank" },
+      "claims": { "ar": ["بنك المثال"], "en": ["example bank"] },
+      "tokens": ["exb"],
+      "domains": ["examplebank.com"]
+    },
+    {
+      "id": "example-customs",
+      "name": { "ar": "جمارك المثال", "en": "Example Customs" },
+      "claims": { "ar": [], "en": [] },
+      "tokens": ["excustoms"],
+      "domains": ["examplecustoms.gov.kw"]
+    }
+  ]
+}

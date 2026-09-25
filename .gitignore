@@ -1,0 +1,5 @@
+node_modules/
+tawash-watch/
+reports/
+*.log
+.DS_Store
