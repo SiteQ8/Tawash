@@ -24,4 +24,4 @@ jobs:
       - name: Tests
         run: node --test
       - name: The command line starts
-        run: node bin/tawash.mjs --help && node bin/tawash.mjs permute example.com --format json > /dev/null
+        run: node bin/tawash.mjs --help && node bin/tawash.mjs candidates example.com --format json > /dev/null

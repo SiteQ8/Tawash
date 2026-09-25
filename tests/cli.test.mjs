@@ -15,7 +15,7 @@ const run = (...args) => spawnSync(process.execPath, [BIN, ...args], { encoding:
 test("help and version", () => {
   const help = run("--help");
   assert.equal(help.status, 0);
-  for (const c of ["scan", "permute", "nrd", "ct", "watch", "algorithms"]) assert.ok(help.stdout.includes(c));
+  for (const c of ["scan", "candidates", "nrd", "ct", "watch", "algorithms"]) assert.ok(help.stdout.includes(c));
   const ar = run("--help", "--lang", "ar");
   assert.ok(ar.stdout.includes("الأوامر"));
   assert.ok(!ar.stdout.includes("`"), "code marks are flattened for the terminal");
@@ -27,10 +27,10 @@ test("algorithms lists every technique", () => {
   assert.deepEqual(out.map((a) => a.id), ALGORITHMS);
 });
 
-test("permute writes json and csv", () => {
-  const list = JSON.parse(run("permute", "exb.com", "--algorithms", "omission", "--format", "json").stdout);
+test("candidates writes json and csv", () => {
+  const list = JSON.parse(run("candidates", "exb.com", "--algorithms", "omission", "--format", "json").stdout);
   assert.deepEqual(list.map((c) => c.domain).sort(), ["eb.com", "ex.com", "xb.com"]);
-  const csv = run("permute", "example.gov.kw", "--algorithms", "dot-to-dash", "--format", "csv").stdout;
+  const csv = run("candidates", "example.gov.kw", "--algorithms", "dot-to-dash", "--format", "csv").stdout;
   assert.ok(csv.startsWith("domain,unicode,technique"));
   assert.ok(csv.includes("example-gov-kw.com"));
 });
@@ -63,7 +63,7 @@ test("wrong usage exits with code 2 and says why", () => {
   assert.equal(run("frobnicate").status, 2);
   assert.equal(run("scan", "--bogus").status, 2);
   assert.equal(run("scan", "not a domain").status, 2);
-  assert.equal(run("permute", "example.com", "--algorithms", "nope").status, 2);
+  assert.equal(run("candidates", "example.com", "--algorithms", "nope").status, 2);
   const none = run("nrd", "--feed", fixture("nrd-sample.txt"));
   assert.equal(none.status, 2);
   assert.ok(none.stderr.includes("--asli"));

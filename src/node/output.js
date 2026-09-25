@@ -44,7 +44,7 @@ export function summary(report, lang = "en") {
   const exists = report.results.filter((r) => r.status === "live" || r.status === "registered").length;
   const fmt = new Intl.NumberFormat(lang === "ar" ? "ar-KW" : "en");
   const parts = [];
-  if (report.kind === "scan") parts.push(plural("generated", report.results.length, lang, (n) => fmt.format(n)));
+  if (report.kind === "scan") parts.push(plural("searched", report.results.length, lang, (n) => fmt.format(n)));
   parts.push(plural("found", exists, lang, (n) => fmt.format(n)));
   return parts.join(lang === "ar" ? "، " : ", ");
 }

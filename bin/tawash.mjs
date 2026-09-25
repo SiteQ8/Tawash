@@ -31,7 +31,7 @@ const OPTIONS = {
   asli: "bool", keywords: "string", keyword: "list", format: "string", out: "string", lang: "string",
   algorithms: "string", all: "bool", doh: "string", resolver: "string", concurrency: "string",
   "known-ns": "string", "known-mx": "string", exclude: "string", web: "bool", certs: "bool",
-  claim: "list", "no-age": "bool", permutations: "bool", date: "string", feed: "string",
+  claim: "list", "no-age": "bool", sweep: "bool", date: "string", feed: "string",
   confidence: "string", dns: "bool", ct: "bool", days: "string", "alert-at": "string",
   "fail-on": "string", version: "bool", help: "bool"
 };
@@ -237,7 +237,7 @@ const COMMANDS = {
     return 0;
   },
 
-  async permute(args, opts, lang) {
+  async candidates(args, opts, lang) {
     const p = parse(args[0] || "");
     if (!p) throw new UsageError(t("cli.badDomain", lang, { input: args[0] || "" }));
     const list = permute(p, { algorithms: algorithmsFrom(opts, lang) });
@@ -247,8 +247,8 @@ const COMMANDS = {
     else if (format === "csv") text = "domain,unicode,technique\r\n" + list.map((c) => [c.domain, c.unicode, c.algorithm].join(",")).join("\r\n") + "\r\n";
     else if (format === "table") {
       text = list.map((c) => c.algorithm.padEnd(20) + (c.idn ? `${c.unicode} (${c.domain})` : c.domain)).join("\n") +
-        "\n\n" + plural("generated", list.length, lang) + "\n";
-    } else throw new UsageError("permute writes table, json or csv");
+        "\n\n" + plural("listed", list.length, lang) + "\n";
+    } else throw new UsageError("candidates writes table, json or csv");
     output(text, opts, lang);
     return 0;
   },
@@ -365,7 +365,7 @@ const COMMANDS = {
       }
     }
 
-    if (opts.permutations) {
+    if (opts.sweep) {
       const resolver = makeResolver(opts);
       const rdap = opts["no-age"] ? null : rdapClient();
       let count = 0;
@@ -377,7 +377,7 @@ const COMMANDS = {
         r.results.filter(exists).forEach((x) => keep({ ...x, original: r.target }));
         count += r.results.length;
       }
-      sources.permutations = { domains: list.official.length, generated: count };
+      sources.sweep = { domains: list.official.length, searched: count };
     }
 
     const date = now().slice(0, 10);

@@ -1,5 +1,5 @@
 /*
-  The engine: punycode, parsing, generators, similarity and the character diff.
+  The engine: punycode, parsing, the search list, similarity and the character diff.
 */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -53,7 +53,7 @@ test("keyboards know their neighbours", () => {
   assert.ok(keyNeighbours("a").includes("z"), "azerty puts z next to a");
 });
 
-test("every technique has a generator and produces valid, unique names", () => {
+test("every technique leads to valid, unique names", () => {
   for (const domain of ["example.com", "examplebank.com", "example.gov.kw", "dunesairways.com", "online.example.com", "kw.example.com"]) {
     const list = permute(domain);
     const names = list.map((c) => c.domain);

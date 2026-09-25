@@ -1,5 +1,5 @@
 /*
-  Tables the generators, the matcher and the scorer read.
+  Tables the search list, the matcher and the scorer read.
 
   Everything here is plain data. The web page and the command line load this
   same file, so they always agree on what a lookalike is.
@@ -254,7 +254,7 @@ export const RISKY_TLDS = [
   "vip", "support", "info", "cc"
 ];
 
-/* Words glued to a name when generating combinations. Kept short on purpose. */
+/* Lure words the search pairs with a name. Kept short on purpose. */
 export const AFFIX_WORDS = [
   "kw", "q8", "kuwait", "online", "pay", "knet", "login", "secure", "update",
   "verify", "portal", "app", "services", "support", "gov", "my", "e"

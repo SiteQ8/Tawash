@@ -36,7 +36,7 @@ jobs:
 
       # Pinned to a release tag, so the job runs code you have read.
       - name: Run the watch
-        run: npx --yes github:SiteQ8/Tawash#v1.0.0 watch --asli --ct --out reports --alert-at 50
+        run: npx --yes github:SiteQ8/Tawash#v1.0.1 watch --asli --ct --out reports --alert-at 50
 
       - name: Open an issue for new candidates
         if: hashFiles('reports/alert.md') != ''

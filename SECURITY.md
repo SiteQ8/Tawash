@@ -10,4 +10,4 @@ Tawash lists candidates, not verdicts. If it shows you a lookalike that is clear
 
 ## Using it responsibly
 
-Tawash is built to defend brands and the people who trust them. Checking whether a name exists in DNS is public, but `--web` fetches pages from sites that may belong to scammers, so run it from a network where that is acceptable, and keep watch results in a private place until a person has reviewed them.
+Tawash exists to defend brands and the people who trust them. Checking whether a name exists in DNS is public, but `--web` fetches pages from sites that may belong to scammers, so run it from a network where that is acceptable, and keep watch results in a private place until a person has reviewed them.

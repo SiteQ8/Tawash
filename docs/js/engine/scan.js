@@ -1,12 +1,13 @@
 /*
   One scan, the same in the browser and on the command line: learn the
-  original's servers, build the lookalikes, ask DNS about each, score them.
+  original's servers, take the search list, ask DNS about each name on it, and
+  score what exists.
 */
 import { parse, clean } from "./domain.js";
 import { permute } from "./permute.js";
 import { assess, rank } from "./score.js";
 
-export const VERSION = "1.0.0";
+export const VERSION = "1.0.1";
 
 /* Runs worker over items with at most size running at once. */
 export async function pool(items, size, worker, signal) {

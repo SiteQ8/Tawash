@@ -1,7 +1,7 @@
 /*
-  The web finder. Everything runs in the visitor's browser: the lookalikes are
-  built by the same engine the command line uses, DNS answers come from Google
-  Public DNS or Cloudflare over HTTPS, and registration dates from RDAP.
+  The web finder. Everything runs in the visitor's browser: the search uses the
+  same engine as the command line, DNS answers come from Google Public DNS or
+  Cloudflare over HTTPS, and registration dates from RDAP.
   Nothing is sent to Tawash, because there is no Tawash server.
 */
 import {

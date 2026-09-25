@@ -1,8 +1,9 @@
 /*
-  Lookalike generators.
+  The search list.
 
-  Each generator takes a parsed domain and returns host names a squatter could
-  register to pass for it. The catalogue follows the algorithms CIRCL's
+  A squatter bends a real name in a handful of known ways. For each of those
+  techniques this file lists the host names it leads to, which are the names
+  Tawash then looks for in DNS. The catalogue follows the techniques CIRCL's
   typosquatting finder documents, and adds three that matter in Kuwait: Latin
   spellings of Arabic names, lure words scammers glue to Kuwaiti brands, and the
   Gulf endings a name gets moved to.
@@ -16,7 +17,7 @@ import {
 } from "./data.js";
 
 /*
-  The order matters: when two generators produce the same name, the first one
+  The order matters: when two techniques lead to the same name, the first one
   names it. The specific explanations come first (a misspelling of kuwait, a
   plural), and the generic typing errors that could explain almost anything
   come last.
@@ -49,7 +50,7 @@ function occurrences(s, word) {
   return out;
 }
 
-/* Latin spellings an Arabic name drifts into. Used by the generator and the matcher. */
+/* Latin spellings an Arabic name drifts into. Used by the search list and the matcher. */
 export function transliterate(word) {
   const out = new Set();
   for (const [from, tos] of TRANSLITERATION) {

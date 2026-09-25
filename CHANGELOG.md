@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1 (2026-09-25)
+
+- Tawash is described as what it is, a threat intelligence tool that searches for lookalike domains, on the page, in the help and in both READMEs.
+- The command that lists the names a scan searches for is now `candidates`, and `watch --sweep` replaces the old option for sweeping the lookalikes of official domains.
+
 ## 1.0.0 (2026-09-25)
 
 First release.

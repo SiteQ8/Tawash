@@ -170,7 +170,7 @@ export const STRINGS = {
     },
     absent: { en: "Nobody has registered it.", ar: "لم يسجّله أحد بعد." },
     unknown: { en: "The DNS lookup failed, so check it again later.", ar: "تعذّر الاستعلام عنه، لذا أعد فحصه لاحقاً." },
-    unchecked: { en: "Generated but not looked up yet.", ar: "وُلّد لكنه لم يُفحص بعد." }
+    unchecked: { en: "On the search list but not looked up yet.", ar: "مدرج في قائمة البحث لكن لم يُستعلم عنه بعد." }
   },
 
   level: {
@@ -228,8 +228,8 @@ export const STRINGS = {
       ar: "يكشف النطاقات التي صُنعت لتبدو كأنها نطاقات الكويت الأصلية."
     },
     lede: {
-      en: "Type a domain and Tawash builds its lookalikes, from typos and swapped letters to foreign characters and Latin spellings of Arabic names, then checks each one live in DNS.",
-      ar: "اكتب نطاقاً فيولّد طوّاش النطاقات الشبيهة به، من أخطاء الكتابة والحروف المبدّلة إلى الحروف الأجنبية والكتابات اللاتينية للأسماء العربية، ثم يفحص كل واحد منها مباشرة في نظام أسماء النطاقات."
+      en: "Type a domain and Tawash searches for the lookalikes registered against it, from typos and swapped letters to foreign characters and Latin spellings of Arabic names, checking each one live in DNS.",
+      ar: "اكتب نطاقاً فيبحث طوّاش عن النطاقات الشبيهة المسجلة التي تنتحله، من أخطاء الكتابة والحروف المبدّلة إلى الحروف الأجنبية والكتابات اللاتينية للأسماء العربية، ويتحقق من كل واحد منها مباشرة في نظام أسماء النطاقات."
     },
     label: { en: "Domain", ar: "النطاق" },
     scan: { en: "Find lookalikes", ar: "ابحث عن الشبيه" },
@@ -256,7 +256,7 @@ export const STRINGS = {
     filterFound: { en: "Exist", ar: "الموجودة" },
     filterLive: { en: "Live", ar: "النشطة" },
     filterKnown: { en: "Yours", ar: "التابعة لك" },
-    filterAll: { en: "Everything generated", ar: "كل ما وُلّد" },
+    filterAll: { en: "Everything searched", ar: "كل ما بُحث عنه" },
     download: { en: "Download", ar: "تنزيل" },
     why: { en: "Why", ar: "لماذا" },
     technique: { en: "Technique", ar: "الأسلوب" },
@@ -350,15 +350,26 @@ export const STRINGS = {
   },
 
   plural: {
-    generated: {
-      en: { one: "{n} lookalike generated", other: "{n} lookalikes generated" },
+    searched: {
+      en: { one: "Searched {n} possible lookalike", other: "Searched {n} possible lookalikes" },
       ar: {
-        zero: "لم يُولَّد أي نطاق شبيه",
-        one: "وُلّد نطاق شبيه واحد",
-        two: "وُلّد نطاقان شبيهان",
-        few: "وُلّد {n} نطاقات شبيهة",
-        many: "وُلّد {n} نطاقاً شبيهاً",
-        other: "وُلّد {n} نطاق شبيه"
+        zero: "لم يُبحث عن أي نطاق شبيه",
+        one: "بُحث عن نطاق شبيه محتمل واحد",
+        two: "بُحث عن نطاقين شبيهين محتملين",
+        few: "بُحث عن {n} نطاقات شبيهة محتملة",
+        many: "بُحث عن {n} نطاقاً شبيهاً محتملاً",
+        other: "بُحث عن {n} نطاق شبيه محتمل"
+      }
+    },
+    listed: {
+      en: { one: "{n} name on the search list", other: "{n} names on the search list" },
+      ar: {
+        zero: "لا توجد أسماء في قائمة البحث",
+        one: "اسم واحد في قائمة البحث",
+        two: "اسمان في قائمة البحث",
+        few: "{n} أسماء في قائمة البحث",
+        many: "{n} اسماً في قائمة البحث",
+        other: "{n} اسم في قائمة البحث"
       }
     },
     found: {
@@ -381,20 +392,20 @@ export const STRINGS = {
 */
 export const HELP = {
   intro: {
-    en: "Tawash finds lookalike domains that pass for Kuwait's real ones.",
-    ar: "يكشف طوّاش النطاقات الشبيهة التي تنتحل نطاقات الكويت الأصلية."
+    en: "Tawash is a threat intelligence tool that finds the lookalike domains passing for Kuwait's real ones.",
+    ar: "طوّاش أداة لرصد التهديدات تكشف النطاقات الشبيهة التي تنتحل نطاقات الكويت الأصلية."
   },
   sections: [
     {
       id: "commands",
       title: { en: "Commands", ar: "الأوامر" },
       rows: [
-        ["scan <domain>", { en: "build the lookalikes of a domain and check which exist", ar: "يولّد النطاقات الشبيهة بنطاق ويفحص الموجود منها" }],
-        ["permute <domain>", { en: "list the lookalikes without checking them", ar: "يسرد النطاقات الشبيهة دون فحصها" }],
+        ["scan <domain>", { en: "search for the registered lookalikes of a domain", ar: "يبحث عن النطاقات الشبيهة المسجلة لنطاق ما" }],
+        ["candidates <domain>", { en: "list the names a scan searches for, without looking them up", ar: "يسرد الأسماء التي يبحث عنها الأمر `scan` دون الاستعلام عنها" }],
         ["nrd", { en: "match newly registered domains against a watchlist", ar: "يطابق النطاقات المسجلة حديثاً مع قائمة المراقبة" }],
         ["ct <keyword>", { en: "search certificate logs for names that carry a brand", ar: "يبحث في سجلات شفافية الشهادات عن أسماء تحمل علامة ما" }],
         ["watch", { en: "run nrd and ct for a watchlist and write a report", ar: "يشغّل الأمرين `nrd` و`ct` لقائمة المراقبة ويكتب تقريراً" }],
-        ["algorithms", { en: "list the lookalike techniques", ar: "يسرد أساليب توليد النطاقات الشبيهة" }]
+        ["algorithms", { en: "list the impersonation techniques Tawash searches for", ar: "يسرد أساليب الانتحال التي يبحث عنها طوّاش" }]
       ]
     },
     {
@@ -413,7 +424,7 @@ export const HELP = {
         ["--format <f>", { en: "table, json, csv, misp, stix or md", ar: "`table` أو `json` أو `csv` أو `misp` أو `stix` أو `md`" }],
         ["--out <path>", { en: "write to a file, or a folder for watch", ar: "يكتب النتيجة في ملف أو في مجلد مع الأمر `watch`" }],
         ["--lang <en|ar>", { en: "language of statuses and reasons", ar: "لغة الحالات والأسباب" }],
-        ["--algorithms <list>", { en: "comma separated techniques for scan and permute", ar: "أساليب مفصولة بفواصل للأمرين `scan` و`permute`" }],
+        ["--algorithms <list>", { en: "comma separated techniques for scan and candidates", ar: "أساليب مفصولة بفواصل للأمرين `scan` و`candidates`" }],
         ["--all", { en: "show every lookalike, not only the ones that exist", ar: "يعرض كل النطاقات الشبيهة لا الموجودة منها فقط" }],
         ["--doh <google|cloudflare>", { en: "resolve over DNS over HTTPS", ar: "يستعلم عبر DNS فوق HTTPS" }],
         ["--resolver <ip,ip>", { en: "use these DNS servers", ar: "يستخدم خوادم DNS هذه" }],
@@ -425,7 +436,7 @@ export const HELP = {
         ["--certs", { en: "look up recent certificates of live lookalikes", ar: "يبحث عن الشهادات الحديثة للنطاقات النشطة" }],
         ["--claim <text>", { en: "a name the organisation goes by, looked for on lookalike pages, repeatable", ar: "اسم تُعرف به الجهة يُبحث عنه في صفحات النطاقات الشبيهة ويمكن تكراره" }],
         ["--no-age", { en: "skip registration dates from RDAP", ar: "يتخطى تواريخ التسجيل من خدمة RDAP" }],
-        ["--permutations", { en: "watch also checks the lookalikes of every official domain", ar: "يفحص الأمر `watch` أيضاً النطاقات الشبيهة بكل نطاق رسمي" }],
+        ["--sweep", { en: "watch also sweeps DNS for lookalikes of every official domain", ar: "يمسح الأمر `watch` أيضاً نظام أسماء النطاقات بحثاً عن النطاقات الشبيهة بكل نطاق رسمي" }],
         ["--date <yyyy-mm-dd>", { en: "day of the newly registered list, yesterday by default", ar: "يوم قائمة النطاقات المسجلة حديثاً وهو أمس افتراضياً" }],
         ["--feed <file>", { en: "read newly registered domains from a text or zip file", ar: "يقرأ النطاقات المسجلة حديثاً من ملف نصي أو مضغوط" }],
         ["--confidence <0-4>", { en: "0 is strictest and 4 finds most, 1 by default", ar: "المستوى 0 هو الأشد و4 يجد أكثر، والافتراضي 1" }],

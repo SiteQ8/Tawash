@@ -2,7 +2,7 @@
 
 # Tawash (طوّاش)
 
-Tawash finds the lookalike domains made to pass for Kuwait's real ones. Give it a domain and it builds the typos, swapped letters, foreign characters and Latin spellings of Arabic names a scammer would register, then asks DNS which of them exist today. It also reads the daily list of newly registered domains and the certificate transparency logs for names that borrow an official Kuwaiti brand.
+Tawash is a threat intelligence tool that finds the lookalike domains made to pass for Kuwait's real ones. Give it a domain and it searches DNS for the lookalikes registered against it: typos, swapped letters, foreign characters and Latin spellings of Arabic names. It also watches the daily list of newly registered domains and the certificate transparency logs for names that borrow an official Kuwaiti brand.
 
 [اقرأ بالعربية](README.ar.md)
 
@@ -22,7 +22,7 @@ In Kuwait's pearling days the tawash was the pearl merchant who sailed out to th
 
 Tawash brings two well known approaches together and tunes them for Kuwait.
 
-The first builds lookalikes of one domain and checks them, the way CIRCL's typosquatting finder does. Tawash implements every technique CIRCL documents and adds three that matter here: Latin spellings of Arabic names (souq, souk and suq), the lure words scammers in Kuwait glue to a brand (kw, q8, knet, pay, login), and the Gulf endings a name gets moved to (com.kw, gov.kw, sa, ae). It learns the original's name and mail servers on its own, so lookalikes the brand already owns are marked as yours instead of raising an alarm, and it reads each lookalike's registration date from RDAP, because a name registered last week matters more than one registered in 1996.
+The first searches for the registered lookalikes of one domain, the way CIRCL's typosquatting finder does. Tawash covers every technique CIRCL documents and adds three that matter here: Latin spellings of Arabic names (souq, souk and suq), the lure words scammers in Kuwait glue to a brand (kw, q8, knet, pay, login), and the Gulf endings a name gets moved to (com.kw, gov.kw, sa, ae). It learns the original's name and mail servers on its own, so lookalikes the brand already owns are marked as yours instead of raising an alarm, and it reads each lookalike's registration date from RDAP, because a name registered last week matters more than one registered in 1996.
 
 The second watches what is being registered, the way openSquat does. Every day WhoisDS publishes around seventy thousand newly registered domains, and every public TLS certificate lands in certificate transparency logs. Tawash matches both against a watchlist, which can be every official body in the [Asli registry](https://asli.3li.info/) with a single flag.
 
@@ -32,7 +32,7 @@ The same engine runs in the browser and on the command line. The web finder need
 
 ### `scan <domain>`
 
-Builds the lookalikes of a domain, checks each one in DNS, reads registration dates, scores what exists and prints the ones worth a look.
+Searches DNS for the registered lookalikes of a domain, reads their registration dates, scores what it finds and prints the ones worth a look.
 
 ```sh
 npx github:SiteQ8/Tawash scan example.com
@@ -42,12 +42,12 @@ npx github:SiteQ8/Tawash scan example.com.kw --lang ar
 
 `--web` fetches every live lookalike, compares its page title with the original's and looks for the organisation's name on the page (names come from the Asli registry and from `--claim`). `--certs` asks Cert Spotter for certificates issued in the last thirty days. Both contact the lookalikes or third parties, so they only run when asked for.
 
-### `permute <domain>`
+### `candidates <domain>`
 
-Lists the lookalikes without checking anything, which is useful for feeding another tool.
+Lists the names a scan searches for without looking any of them up, which is useful for feeding a blocklist or another tool.
 
 ```sh
-npx github:SiteQ8/Tawash permute example.com --format json
+npx github:SiteQ8/Tawash candidates example.com --format json
 ```
 
 ### `nrd`
@@ -70,7 +70,7 @@ npx github:SiteQ8/Tawash ct examplebank --days 7 --dns
 
 ### `watch`
 
-The daily run: `nrd`, then `ct` with `--ct`, then the lookalikes of every official domain with `--permutations`, all checked in DNS and written to a folder as JSON and Markdown. Names that reach `--alert-at` and were not alerted before go to `alert.md`, so a scheduled job can open an issue only when something new turns up. The folder remembers what it has alerted as hashes, so the state file names nobody.
+The daily run: `nrd`, then `ct` with `--ct`, then a DNS sweep for lookalikes of every official domain with `--sweep`, all checked in DNS and written to a folder as JSON and Markdown. Names that reach `--alert-at` and were not alerted before go to `alert.md`, so a scheduled job can open an issue only when something new turns up. The folder remembers what it has alerted as hashes, so the state file names nobody.
 
 ```sh
 npx github:SiteQ8/Tawash watch --asli --ct --out reports
@@ -78,7 +78,7 @@ npx github:SiteQ8/Tawash watch --asli --ct --out reports
 
 ### `algorithms`
 
-Lists the techniques with a line on each.
+Lists the impersonation techniques Tawash searches for, with a line on each.
 
 ## Watchlist
 
@@ -99,7 +99,7 @@ Official domains are never reported, and their names become keywords too. Names 
 | `--format <f>` | `table`, `json`, `csv`, `misp`, `stix` or `md` |
 | `--out <path>` | write to a file, or to a folder for `watch` |
 | `--lang <en\|ar>` | language of statuses and reasons |
-| `--algorithms <list>` | comma separated techniques for `scan` and `permute` |
+| `--algorithms <list>` | comma separated techniques for `scan` and `candidates` |
 | `--all` | show every lookalike, not only the ones that exist |
 | `--doh <google\|cloudflare>` | resolve over DNS over HTTPS instead of the system resolver |
 | `--resolver <ip,ip>` | use these DNS servers |
@@ -111,7 +111,7 @@ Official domains are never reported, and their names become keywords too. Names 
 | `--certs` | look up recent certificates of live lookalikes |
 | `--claim <text>` | a name the organisation goes by, looked for on lookalike pages, repeatable |
 | `--no-age` | skip registration dates from RDAP |
-| `--permutations` | `watch` also checks the lookalikes of every official domain |
+| `--sweep` | `watch` also sweeps DNS for lookalikes of every official domain |
 | `--date <yyyy-mm-dd>` | day of the newly registered list, yesterday by default |
 | `--feed <file>` | read newly registered domains from a text or zip file |
 | `--confidence <0-4>` | 0 is strictest and 4 finds most, 1 by default |
