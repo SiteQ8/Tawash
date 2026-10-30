@@ -35,25 +35,24 @@ const state = {
 /*
   The specimen: real readings from the search list of the domains reserved for
   examples (RFC 2606), so the page shows how a result reads before anything is
-  searched. No real brand is ever a sample, which is why these lines carry the
-  design lint's ignore marker.
+  searched. No real brand is ever a sample.
 */
 const SPECIMENS = [
-  { original: "example.com", candidate: "exаmple.com", algorithm: "homoglyph" }, // taste-skill-ignore
-  { original: "example.com", candidate: "example-kw.com", algorithm: "kuwait-affix" }, // taste-skill-ignore
+  { original: "example.com", candidate: "exаmple.com", algorithm: "homoglyph" },
+  { original: "example.com", candidate: "example-kw.com", algorithm: "kuwait-affix" },
   { original: "example.gov.kw", candidate: "example-gov-kw.com", algorithm: "dot-to-dash" },
-  { original: "example.com", candidate: "example.com.kw", algorithm: "wrong-tld" } // taste-skill-ignore
+  { original: "example.com", candidate: "example.com.kw", algorithm: "wrong-tld" }
 ];
-const specimen = { index: 0, timer: 0, held: false, stopped: false };
+const specimen = { index: 0 };
 
 /* Our strings may hold code in backticks; everything else is escaped first. */
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
-/* A date never breaks at its hyphens, in either language. */
+/* A short name or a date never breaks at its hyphens, in either language. */
 function rich(text) {
   return escapeHtml(text)
-    .replace(/`([^`]*)`/g, '<code dir="ltr">$1</code>')
+    .replace(/`([^`]*)`/g, (m, c) => `<code dir="ltr"${!/\s/.test(c) && c.length <= 32 ? ' class="nobreak"' : ""}>${c}</code>`)
     .replace(/\b(\d{4}-\d{2}-\d{2})\b/g, '<span class="nobreak">$1</span>');
 }
 const ui = (key, vars) => t("ui." + key, state.lang, vars);
@@ -137,20 +136,16 @@ function buildLegend() {
   }
 }
 
-/* The specimen's picks, one per reading, named for its technique. */
+/* The specimen's picks, one per reading, named for its technique. It moves only when asked. */
 function buildPicks() {
   const box = $("#specimen-picks");
   box.textContent = "";
   SPECIMENS.forEach((s, i) => {
     const b = document.createElement("button");
     b.type = "button";
-    b.setAttribute("aria-label", t("algorithm." + s.algorithm + ".name", state.lang));
+    b.textContent = t("algorithm." + s.algorithm + ".name", state.lang);
     b.setAttribute("aria-pressed", String(i === specimen.index));
-    b.addEventListener("click", () => {
-      specimen.stopped = true;
-      stopCycle();
-      showSpecimen(i, true);
-    });
+    b.addEventListener("click", () => { if (i !== specimen.index) showSpecimen(i, true); });
     box.append(b);
   });
 }
@@ -209,33 +204,23 @@ function showSpecimen(i, animate) {
   };
 }
 
-function startCycle() {
-  stopCycle();
-  if (specimen.stopped || reduceMotion()) return;
-  specimen.timer = setInterval(() => {
-    if (specimen.held || document.hidden || state.target) return;
-    showSpecimen(specimen.index + 1, true);
-  }, 4500);
-}
-function stopCycle() {
-  clearInterval(specimen.timer);
-  specimen.timer = 0;
-}
-
+let swapTimer = 0;
 function setRunning(on) {
   state.running = on;
   const go = $("#go");
   const label = go.querySelector(".go-label");
   const next = on ? ui("stop") : ui("scan");
   go.classList.toggle("stop", on);
-  if (label.textContent === next) return;
-  if (reduceMotion() || !label.textContent) {
+  clearTimeout(swapTimer);
+  if (label.textContent === next || reduceMotion() || !label.textContent) {
     label.textContent = next;
+    go.classList.remove("swapping");
     return;
   }
   go.classList.add("swapping");
-  setTimeout(() => {
-    label.textContent = next;
+  /* The label is read again when the swap lands, so a quick stop never leaves "Stop" on an idle button. */
+  swapTimer = setTimeout(() => {
+    label.textContent = state.running ? ui("stop") : ui("scan");
     go.classList.remove("swapping");
   }, 110);
 }
@@ -280,7 +265,6 @@ async function run(input) {
   });
   $("#results").textContent = "";
   $("#live").textContent = "";
-  stopCycle();
 
   const url = new URL(location.href);
   url.searchParams.set("d", p.host);
@@ -436,8 +420,8 @@ function renderTechniques(values) {
   panel.hidden = !counts.size;
   if (!counts.size) return;
   const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-  const top = sorted.slice(0, 6);
-  const rest = sorted.slice(6).reduce((sum, [, n]) => sum + n, 0);
+  const top = sorted.slice(0, 5);
+  const rest = sorted.slice(5).reduce((sum, [, n]) => sum + n, 0);
   const rows = top.map(([id, n]) => [t("algorithm." + id + ".name", state.lang), n]);
   if (rest) rows.push([ui("otherTechniques"), rest]);
   const max = Math.max(...rows.map(([, n]) => n));
@@ -465,6 +449,8 @@ function renderTechniques(values) {
 */
 function renderRows() {
   const list = $("#results");
+  const active = list.contains(document.activeElement) ? document.activeElement : null;
+  const held = active ? { domain: active.closest(".result")?.dataset.domain, link: active.matches("a") } : null;
   const shown = current().filter(FILTERS[state.filter]);
   const visible = shown.slice(0, state.limit);
   const wanted = visible.map((r) => rowFor(r));
@@ -474,9 +460,18 @@ function renderRows() {
   } else {
     for (const el of list.querySelectorAll(".skeleton")) el.remove();
     wanted.forEach((el, i) => {
-      if (list.children[i] !== el) list.insertBefore(el, list.children[i] || null);
+      const at = list.children[i] || null;
+      if (at === el) return;
+      /* moveBefore keeps focus and open state where the browser has it. */
+      if (el.isConnected && list.moveBefore) list.moveBefore(el, at);
+      else list.insertBefore(el, at);
     });
     while (list.children.length > wanted.length) list.lastElementChild.remove();
+  }
+  if (held && held.domain && document.activeElement !== active) {
+    const kept = state.rows.get(held.domain);
+    const target = kept && kept.el.isConnected ? kept.el.querySelector(held.link ? ".why a" : ".why summary") : null;
+    if (target) target.focus({ preventScroll: true });
   }
   list.setAttribute("aria-busy", String(state.running));
 
@@ -529,14 +524,17 @@ function headline(r) {
 function row(r) {
   const li = document.createElement("li");
   li.className = "result";
+  li.dataset.domain = r.domain;
 
   const score = document.createElement("span");
   score.className = "score " + (EXISTS(r) ? r.level || "none" : "none");
+  const said = document.createElement("span");
+  said.className = "visually-hidden";
+  said.textContent = ui("score") + " " + (EXISTS(r) ? "" : ui("nothing"));
   const n = document.createElement("span");
   n.className = "score-n";
   n.textContent = EXISTS(r) ? number(r.score) : "";
-  score.append(n);
-  score.setAttribute("aria-label", ui("score") + " " + (EXISTS(r) ? number(r.score) : ui("nothing")));
+  score.append(said, n);
 
   const body = document.createElement("div");
   body.className = "body";
@@ -683,24 +681,23 @@ function wire() {
     render();
   });
   for (const b of document.querySelectorAll("[data-export]")) b.addEventListener("click", () => download(b.dataset.export));
+  let copyTimer = 0;
   $("#copy").addEventListener("click", async () => {
+    const copy = $("#copy");
     try {
       await navigator.clipboard.writeText(location.href);
-      note(ui("copied"));
+      copy.textContent = ui("copiedButton");
+      $("#live").textContent = ui("copied");
+      clearTimeout(copyTimer);
+      copyTimer = setTimeout(() => { copy.textContent = ui("copyLink"); }, 1600);
     } catch {
       /* clipboard refused, the address bar still has the link */
     }
   });
-  const box = $("#specimen");
-  box.addEventListener("pointerenter", () => { specimen.held = true; });
-  box.addEventListener("pointerleave", () => { specimen.held = false; });
-  box.addEventListener("focusin", () => { specimen.held = true; });
-  box.addEventListener("focusout", () => { specimen.held = false; });
 }
 
 state.lang = initialLang();
 wire();
 applyLang();
-startCycle();
 const preset = new URLSearchParams(location.search).get("d");
 if (preset) start(preset);

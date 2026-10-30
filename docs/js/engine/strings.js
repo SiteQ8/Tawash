@@ -278,6 +278,7 @@ export const STRINGS = {
     certificates: { en: "Certificates on crt.sh", ar: "الشهادات في `crt.sh`" },
     copyLink: { en: "Copy link to this scan", ar: "انسخ رابط هذا الفحص" },
     copied: { en: "Link copied.", ar: "نُسخ الرابط." },
+    copiedButton: { en: "Link copied", ar: "نُسخ الرابط" },
     idle: {
       en: "Nothing checked yet. Enter a domain above to start.",
       ar: "لم يُفحص شيء بعد، لذا اكتب نطاقاً في الأعلى لتبدأ."

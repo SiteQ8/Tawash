@@ -24,10 +24,10 @@
   <header class="top">
     <div class="wrap top-row">
       <p class="mark"><span class="pearl" aria-hidden="true"></span><span data-t="brand"></span></p>
-      <nav class="top-links">
+      <div class="top-links">
         <a href="https://github.com/SiteQ8/Tawash" data-t="source"></a>
         <button type="button" class="lang" id="lang" lang="en">English</button>
-      </nav>
+      </div>
     </div>
   </header>
 
@@ -103,35 +103,35 @@
       <p id="note" class="note" hidden></p>
 
       <div class="run-body">
+        <div class="run-rail">
+          <div class="run-actions">
+            <h3 data-t="download"></h3>
+            <div class="exports">
+              <button type="button" class="small" data-export="csv">CSV</button>
+              <button type="button" class="small" data-export="json">JSON</button>
+              <button type="button" class="small" data-export="misp">MISP</button>
+              <button type="button" class="small" data-export="stix">STIX</button>
+            </div>
+            <button type="button" class="small copy" id="copy" data-t="copyLink"></button>
+          </div>
+
+          <div class="run-info">
+            <section class="panel" aria-labelledby="original-title">
+              <h3 id="original-title" data-t="original"></h3>
+              <div id="original" class="original"></div>
+            </section>
+            <section class="panel" id="technique-panel" aria-labelledby="technique-title" hidden>
+              <h3 id="technique-title" data-t="byTechnique"></h3>
+              <ol id="by-technique" class="by-technique"></ol>
+            </section>
+          </div>
+        </div>
+
         <div class="run-list">
           <ol id="results" class="results"></ol>
           <p id="empty" class="empty" hidden></p>
           <p class="shown" id="shown" hidden></p>
           <button type="button" id="more" class="small more" data-t="more" hidden></button>
-        </div>
-
-        <div class="run-rail">
-        <div class="run-actions">
-          <h3 data-t="download"></h3>
-          <div class="exports">
-            <button type="button" class="small" data-export="csv">CSV</button>
-            <button type="button" class="small" data-export="json">JSON</button>
-            <button type="button" class="small" data-export="misp">MISP</button>
-            <button type="button" class="small" data-export="stix">STIX</button>
-          </div>
-          <button type="button" class="small copy" id="copy" data-t="copyLink"></button>
-        </div>
-
-        <div class="run-info">
-          <section class="panel" aria-labelledby="original-title">
-            <h3 id="original-title" data-t="original"></h3>
-            <div id="original" class="original"></div>
-          </section>
-          <section class="panel" id="technique-panel" aria-labelledby="technique-title" hidden>
-            <h3 id="technique-title" data-t="byTechnique"></h3>
-            <ol id="by-technique" class="by-technique"></ol>
-          </section>
-        </div>
         </div>
       </div>
     </section>
@@ -155,7 +155,7 @@
         <p data-t="cli"></p>
       </div>
       <!-- example.com is the domain reserved for documentation (RFC 2606), never a real brand. -->
-      <pre dir="ltr"><code>npx github:SiteQ8/Tawash scan example.com<!-- taste-skill-ignore -->
+      <pre dir="ltr"><code>npx github:SiteQ8/Tawash scan example.com
 npx github:SiteQ8/Tawash nrd --keywords watchlist.txt --dns
 npx github:SiteQ8/Tawash watch --keywords watchlist.txt --ct --out reports</code></pre>
     </section>
