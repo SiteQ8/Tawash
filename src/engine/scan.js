@@ -7,7 +7,7 @@ import { parse, clean } from "./domain.js";
 import { permute } from "./permute.js";
 import { assess, rank } from "./score.js";
 
-export const VERSION = "1.1.0";
+export const VERSION = "1.2.0";
 
 /* Runs worker over items with at most size running at once. */
 export async function pool(items, size, worker, signal) {

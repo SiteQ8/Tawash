@@ -103,37 +103,44 @@ export function plain(text) {
 export function diffMarks(a, b) {
   const s = Array.from(a);
   const t = Array.from(b);
-  /* d[i][j] is the cost of turning s from i on into t from j on, so the walk can go forward. */
-  const d = Array.from({ length: s.length + 1 }, () => new Array(t.length + 1).fill(0));
-  for (let i = s.length; i >= 0; i--) d[i][t.length] = s.length - i;
-  for (let j = t.length; j >= 0; j--) d[s.length][j] = t.length - j;
-  for (let i = s.length - 1; i >= 0; i--) {
-    for (let j = t.length - 1; j >= 0; j--) {
-      const cost = s[i] === t[j] ? 0 : 1;
-      d[i][j] = Math.min(d[i + 1][j] + 1, d[i][j + 1] + 1, d[i + 1][j + 1] + cost);
-    }
-  }
   const marks = t.map((ch) => ({ ch, changed: false, gapBefore: false, gapAfter: false }));
-  let i = 0;
-  let j = 0;
-  /* Walking forward and matching first keeps the longest common start, which is how a reader compares. */
-  while (i < s.length || j < t.length) {
-    if (i < s.length && j < t.length && s[i] === t[j] && d[i][j] === d[i + 1][j + 1]) {
-      i++;
-      j++;
-    } else if (j < t.length && d[i][j] === d[i][j + 1] + 1) {
-      marks[j].changed = true;
-      j++;
-    } else if (i < s.length && j < t.length && d[i][j] === d[i + 1][j + 1] + 1) {
-      marks[j].changed = true;
-      i++;
-      j++;
-    } else {
-      if (j < marks.length) marks[j].gapBefore = true;
-      else if (marks.length) marks[marks.length - 1].gapAfter = true;
-      i++;
+  /*
+    The longest run the two names share is kept, then the same is done on
+    each side of it. A reader compares names in runs of letters, so a stray
+    letter that happens to match inside a changed stretch is shown as part of
+    the change: secure-example.com against example.org lifts "secure-" and
+    "com" as wholes instead of a scatter of single letters.
+  */
+  const walk = (s0, s1, t0, t1) => {
+    let best = 0;
+    let bs = 0;
+    let bt = 0;
+    const run = new Array(t1 - t0 + 1).fill(0);
+    for (let i = s0; i < s1; i++) {
+      for (let j = t1 - 1; j >= t0; j--) {
+        const k = j - t0;
+        run[k + 1] = s[i] === t[j] ? run[k] + 1 : 0;
+        if (run[k + 1] > best) {
+          best = run[k + 1];
+          bs = i - best + 1;
+          bt = j - best + 1;
+        }
+      }
     }
-  }
+    const shortest = Math.min(s1 - s0, t1 - t0);
+    if (best >= 2 || (best === 1 && shortest === 1)) {
+      walk(s0, bs, t0, bt);
+      walk(bs + best, s1, bt + best, t1);
+      return;
+    }
+    if (t1 > t0) {
+      for (let j = t0; j < t1; j++) marks[j].changed = true;
+    } else if (s1 > s0) {
+      if (t0 < marks.length) marks[t0].gapBefore = true;
+      else if (marks.length) marks[marks.length - 1].gapAfter = true;
+    }
+  };
+  walk(0, s.length, 0, t.length);
   return marks;
 }
 

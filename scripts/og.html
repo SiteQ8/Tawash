@@ -7,13 +7,14 @@
   html, body { margin: 0; width: 1200px; height: 630px; background: #0B2A33; color: #EEF1EC; font-family: "Readex Pro", sans-serif; }
   .card { position: relative; width: 1200px; height: 630px; box-sizing: border-box; padding: 64px 72px; display: grid; grid-template-rows: auto 1fr auto; }
   .mark { display: flex; align-items: center; gap: 22px; }
-  .pearl { width: 46px; height: 46px; border-radius: 50%; background: radial-gradient(circle at 34% 30%, #fff 0 14%, #EEF1EC 30%, #C9D6D3 62%, #8FA9AB 100%); box-shadow: 0 0 0 5px #C8A15A; }
+  .pearl { position: relative; width: 44px; height: 44px; border-radius: 50%; background: #EEF1EC; outline: 4px solid #C8A15A; outline-offset: 5px; }
+  .pearl::after { content: ""; position: absolute; top: 22%; left: 24%; width: 26%; height: 26%; border-radius: 50%; background: #0B2A33; opacity: 0.18; }
   .ar { font-family: "Reem Kufi", sans-serif; font-weight: 700; font-size: 104px; line-height: 1; }
   .en { font-size: 40px; font-weight: 500; color: #9DB7BA; letter-spacing: 0.04em; margin-inline-start: 10px; }
   .lines { align-self: center; direction: ltr; display: grid; gap: 14px; font-family: "IBM Plex Mono", monospace; font-weight: 500; font-size: 44px; }
   .lines div { display: flex; gap: 28px; align-items: baseline; }
-  .lines small { font-family: "Readex Pro", sans-serif; font-size: 22px; color: #9DB7BA; min-width: 190px; }
-  .d { background: #EEF1EC; color: #0B2A33; border-radius: 5px; padding: 0 3px; box-shadow: 0 0 14px rgba(238,241,236,0.35); }
+  .lines small { font-family: "Readex Pro", sans-serif; font-size: 22px; color: #9DB7BA; min-width: 240px; }
+  .d { background: #EEF1EC; color: #0B2A33; border-radius: 4px; padding: 0 0.06em; }
   .foot { display: flex; justify-content: space-between; align-items: end; font-size: 27px; color: #9DB7BA; }
   .foot b { color: #EEF1EC; font-weight: 500; }
   .url { direction: ltr; font-family: "IBM Plex Mono", monospace; font-size: 24px; color: #C8A15A; }
@@ -24,9 +25,9 @@
     <div class="mark"><span class="pearl"></span><span class="ar">طوّاش</span><span class="en">Tawash</span></div>
     <div class="lines">
       <div><small>original</small><span>example.com</span></div>
-      <div><small>lookalike chars</small><span>ex<span class="d">а</span>mple.com</span></div>
-      <div><small>Kuwait lure word</small><span>example<span class="d">-kw</span>.com</span></div>
-      <div><small>dot to hyphen</small><span>example<span class="d">-</span>gov<span class="d">-</span>kw<span class="d">.com</span></span></div>
+      <div><small>lookalike characters</small><span>ex<span class="d">а</span>mple.com</span></div>
+      <div><small>Kuwait lure words</small><span>example<span class="d">-kw</span>.com</span></div>
+      <div><small>other ending</small><span>example.com<span class="d">.kw</span></span></div>
     </div>
     <div class="foot">
       <span><b>يكشف النطاقات الشبيهة بنطاقات الكويت</b><br>Lookalike domain finder for Kuwait</span>

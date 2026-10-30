@@ -5,12 +5,13 @@
   Nothing is sent to Tawash, because there is no Tawash server.
 */
 import {
-  ALGORITHMS, VERSION, t, reasonText, parse, diffMarks, toUnicode, scan, rank,
+  ALGORITHMS, VERSION, t, plural, reasonText, parse, diffMarks, toUnicode, toASCII, scan, rank,
   dohResolver, rdapClient, serialise, hostList, POINTS, loadTlds
 } from "./js/engine/index.js";
 
 const $ = (s) => document.querySelector(s);
-const MAX_ROWS = 600;
+const PAGE = 600;
+const reduceMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 let everyTld = null;
 
 const state = {
@@ -24,16 +25,36 @@ const state = {
   controller: null,
   running: false,
   open: new Set(),
+  rows: new Map(),
+  arrived: new Set(),
+  limit: PAGE,
   frame: 0,
   last: 0
 };
+
+/*
+  The specimen: real readings from the search list of the domains reserved for
+  examples (RFC 2606), so the page shows how a result reads before anything is
+  searched. No real brand is ever a sample, which is why these lines carry the
+  design lint's ignore marker.
+*/
+const SPECIMENS = [
+  { original: "example.com", candidate: "exаmple.com", algorithm: "homoglyph" }, // taste-skill-ignore
+  { original: "example.com", candidate: "example-kw.com", algorithm: "kuwait-affix" }, // taste-skill-ignore
+  { original: "example.gov.kw", candidate: "example-gov-kw.com", algorithm: "dot-to-dash" },
+  { original: "example.com", candidate: "example.com.kw", algorithm: "wrong-tld" } // taste-skill-ignore
+];
+const specimen = { index: 0, timer: 0, held: false, stopped: false };
 
 /* Our strings may hold code in backticks; everything else is escaped first. */
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
+/* A date never breaks at its hyphens, in either language. */
 function rich(text) {
-  return escapeHtml(text).replace(/`([^`]*)`/g, '<code dir="ltr">$1</code>');
+  return escapeHtml(text)
+    .replace(/`([^`]*)`/g, '<code dir="ltr">$1</code>')
+    .replace(/\b(\d{4}-\d{2}-\d{2})\b/g, '<span class="nobreak">$1</span>');
 }
 const ui = (key, vars) => t("ui." + key, state.lang, vars);
 const number = (n) => new Intl.NumberFormat(state.lang === "ar" ? "ar-KW" : "en").format(n);
@@ -62,8 +83,11 @@ function applyLang() {
   button.lang = state.lang === "ar" ? "en" : "ar";
   buildTechniques();
   buildLegend();
+  buildPicks();
+  showSpecimen(specimen.index, false);
   setRunning(state.running);
-  render(true);
+  state.rows.clear();
+  render();
 }
 
 function buildTechniques() {
@@ -83,10 +107,19 @@ function buildTechniques() {
     label.append(box, name);
     list.append(label);
   }
+  optionsState();
 }
 
 function selectedTechniques() {
   return [...document.querySelectorAll("#technique-list input:checked")].map((i) => i.value);
+}
+
+/* The closed options control says what the search covers. */
+function optionsState() {
+  const n = selectedTechniques().length;
+  const parts = [ui("optionsState", { n: number(n), total: number(ALGORITHMS.length) })];
+  parts.push($("#all-tlds").checked ? ui("tldsEvery") : ui("tldsUsual"));
+  $("#options-state").innerHTML = rich(parts.join(state.lang === "ar" ? "، " : ", "));
 }
 
 function buildLegend() {
@@ -94,18 +127,117 @@ function buildLegend() {
   dl.textContent = "";
   for (const id of ["live", "registered", "known", "absent", "unknown"]) {
     const dt = document.createElement("dt");
-    dt.innerHTML = `<span class="status ${id}">${escapeHtml(t("status." + id, state.lang))}</span>`;
+    const mark = document.createElement("span");
+    mark.className = "status " + id;
+    mark.textContent = t("status." + id, state.lang);
+    dt.append(mark);
     const dd = document.createElement("dd");
     dd.innerHTML = rich(t("statusAbout." + id, state.lang));
     dl.append(dt, dd);
   }
 }
 
+/* The specimen's picks, one per reading, named for its technique. */
+function buildPicks() {
+  const box = $("#specimen-picks");
+  box.textContent = "";
+  SPECIMENS.forEach((s, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.setAttribute("aria-label", t("algorithm." + s.algorithm + ".name", state.lang));
+    b.setAttribute("aria-pressed", String(i === specimen.index));
+    b.addEventListener("click", () => {
+      specimen.stopped = true;
+      stopCycle();
+      showSpecimen(i, true);
+    });
+    box.append(b);
+  });
+}
+
+function fillLoupe(el, from, to) {
+  el.textContent = "";
+  for (const m of diffMarks(toUnicode(from), toUnicode(to))) {
+    const span = document.createElement("span");
+    span.textContent = m.ch;
+    const cls = [m.changed ? "d" : "", m.gapBefore ? "gap" : "", m.gapAfter ? "gap-after" : ""].filter(Boolean).join(" ");
+    if (cls) span.className = cls;
+    if (m.changed && m.ch.codePointAt(0) > 127) span.title = letterNote(m.ch);
+    el.append(span);
+  }
+}
+
+/* What a lifted letter really is: its code point and its alphabet. */
+function letterNote(ch) {
+  const cp = "U+" + ch.codePointAt(0).toString(16).toUpperCase().padStart(4, "0");
+  const script = /\p{Script=Cyrillic}/u.test(ch) ? "cyrillic"
+    : /\p{Script=Greek}/u.test(ch) ? "greek"
+    : /\p{Script=Armenian}/u.test(ch) ? "armenian"
+    : /\p{Script=Latin}/u.test(ch) ? "latin" : "other";
+  return ui("letter", { cp, script: t("script." + script, state.lang) });
+}
+
+function showSpecimen(i, animate) {
+  specimen.index = (i + SPECIMENS.length) % SPECIMENS.length;
+  const s = SPECIMENS[specimen.index];
+  const stage = $("#specimen-stage");
+  const paint = () => {
+    $("#specimen-original").textContent = s.original;
+    const candidate = $("#specimen-candidate");
+    fillLoupe(candidate, s.original, s.candidate);
+    const ascii = toASCII(s.candidate);
+    $("#specimen-ascii").textContent = ascii !== s.candidate ? ascii : "";
+    $("#specimen-about").innerHTML = rich(t("algorithm." + s.algorithm + ".about", state.lang));
+    document.querySelectorAll("#specimen-picks button").forEach((b, k) => b.setAttribute("aria-pressed", String(k === specimen.index)));
+    return candidate;
+  };
+  if (!animate || reduceMotion() || !stage.animate) {
+    paint();
+    return;
+  }
+  /* Blur bridges the two readings, so the eye sees one change, not two words swapping. */
+  const out = stage.animate([{ opacity: 1, filter: "blur(0)" }, { opacity: 0, filter: "blur(2px)" }], { duration: 120, easing: "ease-out", fill: "forwards" });
+  out.onfinish = () => {
+    const candidate = paint();
+    out.cancel();
+    stage.animate([{ opacity: 0, filter: "blur(2px)" }, { opacity: 1, filter: "blur(0)" }], { duration: 220, easing: "cubic-bezier(0.23, 1, 0.32, 1)" });
+    candidate.querySelectorAll(".d").forEach((d, k) => {
+      d.animate([{ opacity: 0, transform: "translateY(2px) scale(0.92)" }, { opacity: 1, transform: "none" }], {
+        duration: 260, delay: 90 + k * 40, easing: "cubic-bezier(0.23, 1, 0.32, 1)", fill: "backwards"
+      });
+    });
+  };
+}
+
+function startCycle() {
+  stopCycle();
+  if (specimen.stopped || reduceMotion()) return;
+  specimen.timer = setInterval(() => {
+    if (specimen.held || document.hidden || state.target) return;
+    showSpecimen(specimen.index + 1, true);
+  }, 4500);
+}
+function stopCycle() {
+  clearInterval(specimen.timer);
+  specimen.timer = 0;
+}
+
 function setRunning(on) {
   state.running = on;
   const go = $("#go");
-  go.textContent = on ? ui("stop") : ui("scan");
+  const label = go.querySelector(".go-label");
+  const next = on ? ui("stop") : ui("scan");
   go.classList.toggle("stop", on);
+  if (label.textContent === next) return;
+  if (reduceMotion() || !label.textContent) {
+    label.textContent = next;
+    return;
+  }
+  go.classList.add("swapping");
+  setTimeout(() => {
+    label.textContent = next;
+    go.classList.remove("swapping");
+  }, 110);
 }
 
 function showError(text) {
@@ -114,10 +246,12 @@ function showError(text) {
   box.hidden = !text;
 }
 
-function note(text) {
+function note(text, tone) {
   const box = $("#note");
   box.innerHTML = text ? rich(text) : "";
   box.hidden = !text;
+  if (tone) box.dataset.tone = tone;
+  else delete box.dataset.tone;
 }
 
 function start(value) {
@@ -140,7 +274,13 @@ async function run(input) {
   if (state.controller) state.controller.abort();
   const controller = new AbortController();
   state.controller = controller;
-  Object.assign(state, { results: new Map(), total: 0, target: p.host, original: null, report: null, open: new Set() });
+  Object.assign(state, {
+    results: new Map(), total: 0, target: p.host, original: null, report: null,
+    open: new Set(), rows: new Map(), arrived: new Set(), limit: PAGE
+  });
+  $("#results").textContent = "";
+  $("#live").textContent = "";
+  stopCycle();
 
   const url = new URL(location.href);
   url.searchParams.set("d", p.host);
@@ -152,7 +292,7 @@ async function run(input) {
   $("#idle").hidden = true;
   setRunning(true);
   note(ui("learning", { domain: p.registrable }));
-  render(true);
+  render();
 
   /* Every ending IANA lists, read once per visit and only when asked for. */
   let tlds = null;
@@ -162,7 +302,7 @@ async function run(input) {
       tlds = await everyTld;
     } catch {
       everyTld = null;
-      note(ui("tldsFailed"));
+      note(ui("tldsFailed"), "warn");
     }
   }
 
@@ -179,7 +319,7 @@ async function run(input) {
       onOriginal: (o) => {
         if (state.controller !== controller) return;
         state.original = o;
-        if (o.exists === false) note(ui("originalMissing", { domain: o.domain }));
+        if (o.exists === false) note(ui("originalMissing", { domain: o.domain }), "warn");
         else if (!$("#all-tlds").checked || tlds) note("");
       },
       onCandidates: (list) => {
@@ -196,13 +336,15 @@ async function run(input) {
     const values = [...state.results.values()];
     const unknown = values.filter((r) => r.status === "unknown").length;
     if (controller.signal.aborted) note(ui("stopped"));
-    else if (values.length > 10 && unknown === values.length) note(ui("dnsFailed"));
+    else if (values.length > 10 && unknown === values.length) note(ui("dnsFailed"), "warn");
   } catch {
-    note(ui("dnsFailed"));
+    note(ui("dnsFailed"), "warn");
   } finally {
     if (state.controller === controller) {
       setRunning(false);
-      render(true);
+      render();
+      const exist = [...state.results.values()].filter(EXISTS).length;
+      $("#live").textContent = plural("found", exist, state.lang, number);
     }
   }
 }
@@ -221,7 +363,7 @@ function schedule() {
       return;
     }
     state.last = now;
-    render(false);
+    render();
   });
 }
 
@@ -244,46 +386,137 @@ function render() {
   const exist = values.filter(EXISTS).length;
   const live = values.filter((r) => r.status === "live").length;
   const yours = values.filter((r) => r.status === "known").length;
-  $("#n-checked").textContent = state.total ? `${number(values.length)} / ${number(state.total)}` : number(values.length);
+  $("#n-checked").textContent = state.running && state.total
+    ? `${number(values.length)} / ${number(state.total)}`
+    : number(values.length || state.total);
   $("#n-exist").textContent = number(exist);
   $("#n-live").textContent = number(live);
   $("#n-yours").textContent = number(yours);
-  const pct = state.total ? Math.round((values.length / state.total) * 100) : 0;
-  $("#meter-fill").style.width = pct + "%";
-  $(".meter").setAttribute("aria-valuenow", String(pct));
+  const pct = state.total ? values.length / state.total : 0;
+  const meter = $(".meter");
+  $("#meter-fill").style.setProperty("--p", String(state.running ? pct : 1));
+  meter.setAttribute("aria-valuenow", String(Math.round((state.running ? pct : 1) * 100)));
+  meter.toggleAttribute("data-done", !state.running);
 
+  for (const b of document.querySelectorAll("[data-filter]")) b.setAttribute("aria-pressed", String(b.dataset.filter === state.filter));
+
+  renderOriginal();
+  renderTechniques(values);
+  renderRows();
+}
+
+function renderOriginal() {
+  const box = $("#original");
   const o = state.original;
-  const originalBox = $("#original");
-  if (o) {
-    const parts = [`${escapeHtml(ui("original"))}: <code dir="ltr">${escapeHtml(o.domain)}</code>`];
-    if (o.ns.length) parts.push(`${escapeHtml(ui("nameServers"))}: <code dir="ltr">${escapeHtml(o.ns.slice(0, 4).join(" "))}</code>`);
-    if (o.mx.length) parts.push(`${escapeHtml(ui("mailServers"))}: <code dir="ltr">${escapeHtml(o.mx.slice(0, 2).join(" "))}</code>`);
-    originalBox.innerHTML = parts.join("<br>");
-  } else {
-    originalBox.textContent = "";
-  }
+  box.textContent = "";
+  const host = document.createElement("code");
+  host.className = "host";
+  host.dir = "ltr";
+  host.textContent = o ? o.domain : state.target;
+  box.append(host);
+  if (!o) return;
+  const dl = document.createElement("dl");
+  const add = (label, list) => {
+    const dt = document.createElement("dt");
+    dt.textContent = label;
+    const dd = document.createElement("dd");
+    dd.textContent = list && list.length ? list.slice(0, 4).join(" ") : ui("nothing");
+    dl.append(dt, dd);
+  };
+  add(ui("nameServers"), o.ns);
+  add(ui("mailServers"), o.mx);
+  box.append(dl);
+}
 
-  for (const b of document.querySelectorAll("[data-filter]")) b.setAttribute("aria-selected", String(b.dataset.filter === state.filter));
-
-  const shown = current().filter(FILTERS[state.filter]);
-  const list = $("#results");
+/* Which techniques the lookalikes that exist were found with. */
+function renderTechniques(values) {
+  const counts = new Map();
+  for (const r of values) if (EXISTS(r)) counts.set(r.algorithm, (counts.get(r.algorithm) || 0) + 1);
+  const panel = $("#technique-panel");
+  panel.hidden = !counts.size;
+  if (!counts.size) return;
+  const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  const top = sorted.slice(0, 6);
+  const rest = sorted.slice(6).reduce((sum, [, n]) => sum + n, 0);
+  const rows = top.map(([id, n]) => [t("algorithm." + id + ".name", state.lang), n]);
+  if (rest) rows.push([ui("otherTechniques"), rest]);
+  const max = Math.max(...rows.map(([, n]) => n));
+  const list = $("#by-technique");
   list.textContent = "";
-  const frag = document.createDocumentFragment();
-  for (const r of shown.slice(0, MAX_ROWS)) frag.append(row(r));
-  list.append(frag);
+  for (const [name, n] of rows) {
+    const li = document.createElement("li");
+    const label = document.createElement("span");
+    label.textContent = name;
+    const figure = document.createElement("span");
+    figure.className = "n";
+    figure.textContent = number(n);
+    const bar = document.createElement("span");
+    bar.className = "bar";
+    bar.style.setProperty("--w", String(n / max));
+    li.append(label, figure, bar);
+    list.append(li);
+  }
+}
+
+/*
+  Rows are keyed by domain and built once, so a result that comes back again
+  keeps its element, its open details and its focus. Only rows that arrive
+  during a run move in.
+*/
+function renderRows() {
+  const list = $("#results");
+  const shown = current().filter(FILTERS[state.filter]);
+  const visible = shown.slice(0, state.limit);
+  const wanted = visible.map((r) => rowFor(r));
+
+  if (!wanted.length && state.running) {
+    if (!list.querySelector(".skeleton")) list.replaceChildren(...[0, 1, 2].map(skeletonRow));
+  } else {
+    for (const el of list.querySelectorAll(".skeleton")) el.remove();
+    wanted.forEach((el, i) => {
+      if (list.children[i] !== el) list.insertBefore(el, list.children[i] || null);
+    });
+    while (list.children.length > wanted.length) list.lastElementChild.remove();
+  }
+  list.setAttribute("aria-busy", String(state.running));
 
   const empty = $("#empty");
-  if (shown.length) {
+  if (shown.length || state.running) {
     empty.hidden = true;
-  } else if (!state.running && state.filter === "found" && values.length) {
-    empty.hidden = false;
-    empty.innerHTML = rich(ui("clean"));
-  } else if (!state.running) {
-    empty.hidden = false;
-    empty.innerHTML = rich(ui("emptyFilter"));
   } else {
-    empty.hidden = true;
+    empty.hidden = false;
+    empty.innerHTML = rich(state.filter === "found" && state.results.size ? ui("clean") : ui("emptyFilter"));
   }
+
+  const more = $("#more");
+  const line = $("#shown");
+  const cut = shown.length > visible.length;
+  more.hidden = !cut;
+  line.hidden = !cut;
+  if (cut) line.textContent = ui("shownOf", { shown: number(visible.length), total: number(shown.length) });
+}
+
+function rowFor(r) {
+  const sig = [r.status, r.score, (r.reasons || []).length, r.age ? r.age.created : "", state.lang].join("|");
+  const kept = state.rows.get(r.domain);
+  if (kept && kept.sig === sig) return kept.el;
+  const el = row(r);
+  if (kept && kept.el.isConnected) kept.el.replaceWith(el);
+  if (state.running && !state.arrived.has(r.domain) && !reduceMotion()) {
+    el.classList.add("arrive");
+    el.addEventListener("animationend", () => el.classList.remove("arrive"), { once: true });
+  }
+  state.arrived.add(r.domain);
+  state.rows.set(r.domain, { sig, el });
+  return el;
+}
+
+function skeletonRow() {
+  const li = document.createElement("li");
+  li.className = "result skeleton";
+  li.setAttribute("aria-hidden", "true");
+  li.innerHTML = '<span class="score"><span class="bone"></span></span><span class="body"><span class="bone"></span><span class="bone"></span></span><span class="status"><span class="bone"></span></span>';
+  return li;
 }
 
 /* The strongest piece of evidence, to show beside the technique without opening the details. */
@@ -293,33 +526,25 @@ function headline(r) {
   return best ? reasonText(best, state.lang) : "";
 }
 
-function loupe(r) {
-  const p = document.createElement("p");
-  p.className = "loupe";
-  p.dir = "ltr";
-  const from = toUnicode(state.original ? state.original.domain : state.target);
-  const marks = diffMarks(from, r.unicode);
-  for (const m of marks) {
-    const span = document.createElement("span");
-    span.textContent = m.ch;
-    const cls = [m.changed ? "d" : "", m.gapBefore ? "gap" : "", m.gapAfter ? "gap-after" : ""].filter(Boolean).join(" ");
-    if (cls) span.className = cls;
-    p.append(span);
-  }
-  return p;
-}
-
 function row(r) {
   const li = document.createElement("li");
   li.className = "result";
 
   const score = document.createElement("span");
-  score.className = "score " + (r.level || "none");
-  score.textContent = EXISTS(r) ? number(r.score) : "";
-  score.setAttribute("aria-label", ui("score") + " " + r.score);
+  score.className = "score " + (EXISTS(r) ? r.level || "none" : "none");
+  const n = document.createElement("span");
+  n.className = "score-n";
+  n.textContent = EXISTS(r) ? number(r.score) : "";
+  score.append(n);
+  score.setAttribute("aria-label", ui("score") + " " + (EXISTS(r) ? number(r.score) : ui("nothing")));
 
   const body = document.createElement("div");
-  body.append(loupe(r));
+  body.className = "body";
+  const loupe = document.createElement("p");
+  loupe.className = "loupe";
+  loupe.dir = "ltr";
+  fillLoupe(loupe, state.original ? state.original.domain : state.target, r.unicode);
+  body.append(loupe);
   if (r.idn) {
     const ascii = document.createElement("span");
     ascii.className = "ascii";
@@ -349,11 +574,13 @@ function row(r) {
     });
     const summary = document.createElement("summary");
     summary.textContent = ui("why");
+    const inner = document.createElement("div");
+    inner.className = "why-body";
     const ul = document.createElement("ul");
     for (const reason of r.reasons || []) {
-      const li2 = document.createElement("li");
-      li2.innerHTML = rich(reasonText(reason, state.lang));
-      ul.append(li2);
+      const item = document.createElement("li");
+      item.innerHTML = rich(reasonText(reason, state.lang));
+      ul.append(item);
     }
     const dl = document.createElement("dl");
     dl.className = "records";
@@ -373,7 +600,8 @@ function row(r) {
     crt.target = "_blank";
     crt.rel = "noopener noreferrer";
     crt.innerHTML = rich(ui("certificates"));
-    details.append(summary, ul, dl, crt);
+    inner.append(ul, dl, crt);
+    details.append(summary, inner);
     li.append(details);
   }
   return li;
@@ -409,33 +637,51 @@ function download(format) {
   }, 1000);
 }
 
+function switchLang() {
+  state.lang = state.lang === "ar" ? "en" : "ar";
+  try {
+    localStorage.setItem("tawash.lang", state.lang);
+  } catch {
+    /* private mode */
+  }
+  const url = new URL(location.href);
+  if (state.lang === "en") url.searchParams.set("lang", "en");
+  else url.searchParams.delete("lang");
+  history.replaceState(null, "", url);
+  /* A short crossfade hides the page turning from right to left. */
+  if (document.startViewTransition && !reduceMotion()) document.startViewTransition(applyLang);
+  else applyLang();
+}
+
 function wire() {
   $("#form").addEventListener("submit", (e) => {
     e.preventDefault();
     if (state.running) stop();
     else run($("#domain").value);
   });
-  $("#lang").addEventListener("click", () => {
-    state.lang = state.lang === "ar" ? "en" : "ar";
-    try {
-      localStorage.setItem("tawash.lang", state.lang);
-    } catch {
-      /* private mode */
-    }
-    const url = new URL(location.href);
-    if (state.lang === "en") url.searchParams.set("lang", "en");
-    else url.searchParams.delete("lang");
-    history.replaceState(null, "", url);
-    applyLang();
+  $("#lang").addEventListener("click", switchLang);
+  $("#all-on").addEventListener("click", () => {
+    document.querySelectorAll("#technique-list input").forEach((i) => { i.checked = true; });
+    optionsState();
   });
-  $("#all-on").addEventListener("click", () => document.querySelectorAll("#technique-list input").forEach((i) => { i.checked = true; }));
-  $("#all-off").addEventListener("click", () => document.querySelectorAll("#technique-list input").forEach((i) => { i.checked = false; }));
+  $("#all-off").addEventListener("click", () => {
+    document.querySelectorAll("#technique-list input").forEach((i) => { i.checked = false; });
+    optionsState();
+  });
+  $("#technique-list").addEventListener("change", optionsState);
+  $("#all-tlds").addEventListener("change", optionsState);
   for (const b of document.querySelectorAll("[data-filter]")) {
     b.addEventListener("click", () => {
+      if (state.filter === b.dataset.filter) return;
       state.filter = b.dataset.filter;
-      render(true);
+      state.limit = PAGE;
+      render();
     });
   }
+  $("#more").addEventListener("click", () => {
+    state.limit += PAGE;
+    render();
+  });
   for (const b of document.querySelectorAll("[data-export]")) b.addEventListener("click", () => download(b.dataset.export));
   $("#copy").addEventListener("click", async () => {
     try {
@@ -445,10 +691,16 @@ function wire() {
       /* clipboard refused, the address bar still has the link */
     }
   });
+  const box = $("#specimen");
+  box.addEventListener("pointerenter", () => { specimen.held = true; });
+  box.addEventListener("pointerleave", () => { specimen.held = false; });
+  box.addEventListener("focusin", () => { specimen.held = true; });
+  box.addEventListener("focusout", () => { specimen.held = false; });
 }
 
 state.lang = initialLang();
 wire();
 applyLang();
+startCycle();
 const preset = new URLSearchParams(location.search).get("d");
 if (preset) start(preset);

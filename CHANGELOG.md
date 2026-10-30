@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.2.0 (2026-10-30)
+
+- A new design for the page at https://tawash.3li.info/. The night palette is calmer, a single brass line marks the current choice, and Reem Kufi is kept for the wordmark alone.
+- Each domain reads through a loupe that lifts only what differs from the original, as whole runs of characters, so `secure-example.com` shows `secure-` added rather than scattered letters. A letter from another alphabet names its script when you point at it.
+- Before anything is searched, the page shows how a result reads, on the domains reserved for examples.
+- The counts are the filters: each count is a button that shows its results.
+- While a search runs, results keep their place and any open details, and only new rows arrive with motion. Long lists show 600 at a time, with a button for more.
+- A panel counts the results by technique. On wide screens the downloads, the original domain and that panel stay beside the list.
+- The options say how many techniques are on, dates never break across two lines, and all motion follows the system setting for reduced motion.
+- The share picture and the icon use the flat pearl of the page.
+
 ## 1.1.0 (2026-09-25)
 
 - The search for other endings can now cover every top level domain IANA lists, about 1,400, with `--all-tlds` on the command line or the matching option on the page. The list is read live from IANA each time.

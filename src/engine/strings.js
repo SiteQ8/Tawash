@@ -324,7 +324,30 @@ export const STRINGS = {
     licence: { en: "Open source under the MIT licence.", ar: "مفتوح المصدر بترخيص MIT." },
     source: { en: "Source on GitHub", ar: "الشيفرة على GitHub" },
     progress: { en: "Scan progress", ar: "تقدّم الفحص" },
-    results: { en: "Results", ar: "النتائج" }
+    results: { en: "Results", ar: "النتائج" },
+    lookalike: { en: "Lookalike", ar: "الشبيه" },
+    specimenTitle: { en: "How a result reads", ar: "كيف تُقرأ النتيجة" },
+    specimenNote: {
+      en: "An illustration on the domain reserved for examples, not a finding.",
+      ar: "مثال توضيحي على النطاق المحجوز للأمثلة، وليس نتيجة فحص."
+    },
+    optionsState: { en: "Techniques: {n} of {total}", ar: "الأساليب: {n} من {total}" },
+    tldsUsual: { en: "usual endings", ar: "النهايات المعتادة" },
+    tldsEvery: { en: "every ending IANA lists", ar: "كل النهايات لدى IANA" },
+    filtersLabel: { en: "Filter the results", ar: "تصفية النتائج" },
+    byTechnique: { en: "By technique", ar: "حسب الأسلوب" },
+    otherTechniques: { en: "Other techniques", ar: "أساليب أخرى" },
+    more: { en: "Show more", ar: "اعرض المزيد" },
+    shownOf: { en: "Showing {shown} of {total}", ar: "يُعرض {shown} من {total}" },
+    letter: { en: "{cp}, {script}", ar: "{cp}، {script}" }
+  },
+
+  script: {
+    cyrillic: { en: "Cyrillic", ar: "كيريلي" },
+    greek: { en: "Greek", ar: "يوناني" },
+    armenian: { en: "Armenian", ar: "أرمني" },
+    latin: { en: "Latin with a diacritic", ar: "لاتيني بعلامة تشكيل" },
+    other: { en: "another alphabet", ar: "أبجدية أخرى" }
   },
 
   cli: {
