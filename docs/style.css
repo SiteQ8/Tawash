@@ -625,7 +625,7 @@ html[dir="rtl"] .by-technique .bar { transform-origin: right; }
 }
 .why[open] .why-body { animation: unfold 200ms var(--ease-out); }
 .why ul { margin: 0; padding-inline-start: 1.125rem; font-size: var(--fs-meta); }
-.why li { margin: 0.125rem 0; }
+.why li { margin: 0.125rem 0; overflow-wrap: anywhere; }
 .why li::marker { color: var(--faint); }
 .records {
   display: grid;
@@ -636,8 +636,9 @@ html[dir="rtl"] .by-technique .bar { transform-origin: right; }
 }
 .records dt { color: var(--muted); }
 .records dd { margin: 0; font-family: var(--mono); font-size: var(--fs-small); line-height: 1.9; direction: ltr; text-align: left; overflow-wrap: anywhere; }
-/* A long address with no space, such as IPv6, may break anywhere rather than push past a phone's edge. */
-.result code { overflow-wrap: anywhere; }
+/* A long address with no space, such as IPv6, may break anywhere rather than push past a phone's edge,
+   whether it sits in code (Arabic) or in plain text (English). */
+.result code, .result .meta { overflow-wrap: anywhere; }
 html[dir="rtl"] .records dd { text-align: right; }
 /* "None" is a word, not machine text, so it takes the text face and the page's direction. */
 .records dd.none, .original dd.none { font-family: inherit; direction: inherit; color: var(--faint); }
