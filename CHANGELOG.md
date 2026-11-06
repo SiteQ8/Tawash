@@ -1,14 +1,15 @@
 # Changelog
 
-## 1.2.0 (2026-10-30)
+## 1.2.0 (2026-11-06)
 
 - A new design for the page at https://tawash.3li.info/. The night palette is calmer, a single brass line marks the current choice, and Reem Kufi is kept for the wordmark alone.
 - Each domain reads through a loupe that lifts only what differs from the original, as whole runs of characters, so `secure-example.com` shows `secure-` added rather than scattered letters. A letter from another alphabet names its script when you point at it.
-- Before anything is searched, the page shows how a result reads, on the domains reserved for examples.
+- Before anything is searched, the page shows how a result reads on the domains reserved for examples, with one example for each of four techniques, picked by name.
 - The counts are the filters: each count is a button that shows its results.
-- While a search runs, results keep their place and any open details, and only new rows arrive with motion. Long lists show 600 at a time, with a button for more.
-- A panel counts the results by technique. On wide screens the downloads, the original domain and that panel stay beside the list.
-- The options say how many techniques are on, dates never break across two lines, and all motion follows the system setting for reduced motion.
+- While a search runs, results keep their place, any open details and the keyboard focus, and only new rows arrive with motion. Long lists show 600 at a time, with a button for more.
+- A panel counts the results by technique. On wide screens it stays beside the list with the original domain while the list scrolls.
+- The downloads come before the list, copying the link says so at the button and to screen readers, and the keyboard order follows what the screen shows.
+- The options say how many techniques are on, dates and short names never break across two lines, long addresses wrap on small phones, and all motion follows the system setting for reduced motion.
 - The share picture and the icon use the flat pearl of the page.
 
 ## 1.1.0 (2026-09-25)
