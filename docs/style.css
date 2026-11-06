@@ -491,18 +491,19 @@ html[dir="rtl"] #meter-fill { transform-origin: right; }
   background: var(--signal);
 }
 
+/* The code reads actions, list, then the panels, the same order a phone shows them. */
 .run-body {
   display: grid;
   grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
-  grid-template-areas: "list rail";
+  grid-template-areas: "list actions" "list info";
+  grid-template-rows: auto 1fr;
   column-gap: var(--gutter);
   align-items: start;
   margin-top: 0.5rem;
 }
 .run-list { grid-area: list; min-width: 0; }
-.run-rail { grid-area: rail; min-width: 0; }
-.run-actions { padding-top: 1rem; }
-.run-info { display: grid; gap: 1rem; margin-top: 1.5rem; align-content: start; }
+.run-actions { grid-area: actions; min-width: 0; padding-top: 1rem; }
+.run-info { grid-area: info; min-width: 0; display: grid; gap: 1rem; margin-top: 1.5rem; align-content: start; }
 
 .run h3 { font-size: var(--fs-meta); font-weight: 500; color: var(--muted); }
 .exports { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; margin-top: 0.625rem; }
@@ -635,7 +636,11 @@ html[dir="rtl"] .by-technique .bar { transform-origin: right; }
 }
 .records dt { color: var(--muted); }
 .records dd { margin: 0; font-family: var(--mono); font-size: var(--fs-small); line-height: 1.9; direction: ltr; text-align: left; overflow-wrap: anywhere; }
+/* A long address with no space, such as IPv6, may break anywhere rather than push past a phone's edge. */
+.result code { overflow-wrap: anywhere; }
 html[dir="rtl"] .records dd { text-align: right; }
+/* "None" is a word, not machine text, so it takes the text face and the page's direction. */
+.records dd.none, .original dd.none { font-family: inherit; direction: inherit; color: var(--faint); }
 .why-body a { display: inline-block; margin-top: 0.875rem; font-size: var(--fs-meta); }
 
 /* Loading keeps the final layout: flat bars at the real sizes. */
@@ -725,11 +730,11 @@ html[lang="en"] .story p { line-height: 1.65; }
   a:hover { text-decoration-thickness: 2px; }
 }
 
-/* Desktop: the tally and the rail stay in view while the list scrolls. */
+/* Desktop: the tally and the panels beside the list stay in view while it scrolls. */
 @media (min-width: 1024px) {
   html { scroll-padding-top: 7rem; }
   .board { position: sticky; top: 0; z-index: 2; }
-  .run-rail {
+  .run-info {
     position: sticky;
     top: 6.5rem;
     max-height: calc(100vh - 7.5rem);
@@ -744,10 +749,8 @@ html[lang="en"] .story p { line-height: 1.65; }
 @media (max-width: 1023px) {
   .hero { grid-template-columns: minmax(0, 1fr); row-gap: 2.5rem; }
   .specimen-stage { min-height: 0; }
-  .run-body { grid-template-columns: minmax(0, 1fr); grid-template-areas: "actions" "list" "info"; }
-  .run-rail { display: contents; }
-  .run-actions { grid-area: actions; padding-top: 1rem; padding-bottom: 0.5rem; }
-  .run-info { grid-area: info; }
+  .run-body { grid-template-columns: minmax(0, 1fr); grid-template-areas: "actions" "list" "info"; grid-template-rows: none; }
+  .run-actions { padding-bottom: 0.5rem; }
   .exports { grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: 28rem; }
   .copy { width: auto; }
   .run-info { grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); }

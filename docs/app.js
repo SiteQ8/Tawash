@@ -52,7 +52,7 @@ function escapeHtml(s) {
 /* A short name or a date never breaks at its hyphens, in either language. */
 function rich(text) {
   return escapeHtml(text)
-    .replace(/`([^`]*)`/g, (m, c) => `<code dir="ltr"${!/\s/.test(c) && c.length <= 32 ? ' class="nobreak"' : ""}>${c}</code>`)
+    .replace(/`([^`]*)`/g, (m, c) => `<code dir="ltr"${!/\s/.test(c) && c.length <= 20 ? ' class="nobreak"' : ""}>${c}</code>`)
     .replace(/\b(\d{4}-\d{2}-\d{2})\b/g, '<span class="nobreak">$1</span>');
 }
 const ui = (key, vars) => t("ui." + key, state.lang, vars);
@@ -405,6 +405,7 @@ function renderOriginal() {
     dt.textContent = label;
     const dd = document.createElement("dd");
     dd.textContent = list && list.length ? list.slice(0, 4).join(" ") : ui("nothing");
+    dd.classList.toggle("none", !(list && list.length));
     dl.append(dt, dd);
   };
   add(ui("nameServers"), o.ns);
@@ -588,6 +589,7 @@ function row(r) {
       dt.textContent = label;
       const dd = document.createElement("dd");
       dd.textContent = values && values.length ? values.join(" ") : ui("nothing");
+      dd.classList.toggle("none", !(values && values.length));
       dl.append(dt, dd);
     };
     add(ui("addresses"), [...(d.a || []), ...(d.aaaa || [])]);

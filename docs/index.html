@@ -103,28 +103,15 @@
       <p id="note" class="note" hidden></p>
 
       <div class="run-body">
-        <div class="run-rail">
-          <div class="run-actions">
-            <h3 data-t="download"></h3>
-            <div class="exports">
-              <button type="button" class="small" data-export="csv">CSV</button>
-              <button type="button" class="small" data-export="json">JSON</button>
-              <button type="button" class="small" data-export="misp">MISP</button>
-              <button type="button" class="small" data-export="stix">STIX</button>
-            </div>
-            <button type="button" class="small copy" id="copy" data-t="copyLink"></button>
+        <div class="run-actions">
+          <h3 data-t="download"></h3>
+          <div class="exports">
+            <button type="button" class="small" data-export="csv">CSV</button>
+            <button type="button" class="small" data-export="json">JSON</button>
+            <button type="button" class="small" data-export="misp">MISP</button>
+            <button type="button" class="small" data-export="stix">STIX</button>
           </div>
-
-          <div class="run-info">
-            <section class="panel" aria-labelledby="original-title">
-              <h3 id="original-title" data-t="original"></h3>
-              <div id="original" class="original"></div>
-            </section>
-            <section class="panel" id="technique-panel" aria-labelledby="technique-title" hidden>
-              <h3 id="technique-title" data-t="byTechnique"></h3>
-              <ol id="by-technique" class="by-technique"></ol>
-            </section>
-          </div>
+          <button type="button" class="small copy" id="copy" data-t="copyLink"></button>
         </div>
 
         <div class="run-list">
@@ -132,6 +119,17 @@
           <p id="empty" class="empty" hidden></p>
           <p class="shown" id="shown" hidden></p>
           <button type="button" id="more" class="small more" data-t="more" hidden></button>
+        </div>
+
+        <div class="run-info">
+          <section class="panel" aria-labelledby="original-title">
+            <h3 id="original-title" data-t="original"></h3>
+            <div id="original" class="original"></div>
+          </section>
+          <section class="panel" id="technique-panel" aria-labelledby="technique-title" hidden>
+            <h3 id="technique-title" data-t="byTechnique"></h3>
+            <ol id="by-technique" class="by-technique"></ol>
+          </section>
         </div>
       </div>
     </section>
